@@ -7,6 +7,7 @@
   },
   "assets": ["common.sh"],
   "commands": {
+    "pkidb-k8s-secrets": "k8s-secrets.sh",
     "pkidb-ca": "fetch-ca.sh",
     "pkidb-client-krl": "fetch-client-krl.sh",
     "pkidb-crl": "fetch-crl.sh",

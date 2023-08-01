@@ -57,7 +57,7 @@ declare -p "${prefix}__dest" "${prefix}FINGERPRINT"; done; }
         verbose "No destination specified, outputting CA '%s'" "$FINGERPRINT"
         printf -- "%s\n" "$pem"
       fi
-      info 'The CA '%s' has been validated and downloaded' "$FINGERPRINT"
+      info 'The CA '%s' has been downloaded and validated' "$FINGERPRINT"
       return 0
     else
       return 1

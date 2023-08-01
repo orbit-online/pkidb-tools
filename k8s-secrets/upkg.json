@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "orbit-online/records.sh": "v0.9.3",
+    "andsens/docopt.sh": "v1.0.0-upkg"
+  }
+}
