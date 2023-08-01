@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "orbit-online/checkdeps": "v1.0.0",
+    "orbit-online/records.sh": "v0.9.3",
+    "andsens/docopt.sh": "v1.0.0-upkg",
+    "orbit-online/smallstep-wrapper": "v1.0.0"
+  },
+  "assets": ["common.sh"],
+  "commands": {
+    "pkidb-ca": "fetch-ca.sh",
+    "pkidb-client-krl": "fetch-client-krl.sh",
+    "pkidb-crl": "fetch-crl.sh",
+    "pkidb-browser": "update-browser.sh",
+    "pkidb-pam": "update-pam.sh",
+    "pkidb-os": "update-os.sh",
+    "pkidb-sshd": "update-sshd.sh"
+  }
+}
