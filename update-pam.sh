@@ -5,6 +5,7 @@ pkidb_pam() {
   shopt -s inherit_errexit
   local pkgroot
   pkgroot=$(upkg root "${BASH_SOURCE[0]}")
+  PATH="$pkgroot/.upkg/.bin:$PATH"
   # shellcheck source=.upkg/orbit-online/records.sh/records.sh
   source "$pkgroot/.upkg/orbit-online/records.sh/records.sh"
   # shellcheck source=common.sh
