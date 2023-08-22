@@ -6,10 +6,10 @@ SHELL ["/bin/bash", "-ec"]
 RUN wget -q "https://dl.k8s.io/release/v1.27.4/bin/linux/amd64/kubectl" && \
   install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
-RUN wget -qO- https://raw.githubusercontent.com/orbit-online/upkg/v0.10.0/upkg.sh | (\
+RUN wget -qO- https://raw.githubusercontent.com/orbit-online/upkg/v0.10.2/upkg.sh | (\
   set +e; IFS='' read -r -d $'\0' src; set -e;\
-  printf '%s' "$src" | shasum -a 256 -c <(printf '94dbb67fd17ccd3ecd5fd5e27102e3901acc4dc0de990c1347d90bdb3157d555  -');\
-  bash -c "set - install -g orbit-online/upkg@v0.10.0; $src")
+  printf '%s' "$src" | shasum -a 256 -c <(printf '9864c10139a1bf681e641f669191a39697fee7e8ab885ae11f8a1bd617c677ad  -');\
+  bash -c "set - install -g orbit-online/upkg@v0.10.2; $src")
 
 WORKDIR /pkidb-tools
 COPY common.sh k8s-secrets/upkg.json /pkidb-tools
