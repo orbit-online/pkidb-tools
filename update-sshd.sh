@@ -13,29 +13,42 @@ pkidb_sshd() {
 
   DOC="pkidb-sshd - Manage client CAs for openssh-server and renew its hostkey
 Usage:
-  pkidb-sshd --step-ca-url=URL --step-root-fp=FP FINGERPRINT...
+  pkidb-sshd [-e -k TS...] -u URL -f FP FINGERPRINT...
+
+Options:
+  -u --step-url URL          URL to the step-ca
+  -f --step-fp FP            Fingerprint of the step-ca root certificate
+  -e --expiry-threshhold TS  Permitted remaining host certificate
+                             lifetime before renewal [default: 336h]
+  -k --key-algo ALGO         Host cert key algorithms to consider for renewal
+                             [default: ecdsa ed25519 rsa]
 "
 # docopt parser below, refresh this parser with `docopt.sh update-sshd.sh`
 # shellcheck disable=2016,1090,1091,2034,2154
 docopt() { source "$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh" '1.0.0' || {
 ret=$?; printf -- "exit %d\n" "$ret"; exit "$ret"; }; set -e
-trimmed_doc=${DOC:0:142}; usage=${DOC:72:70}; digest=60d90; shorts=('' '')
-longs=(--step-ca-url --step-root-fp); argcounts=(1 1); node_0(){
-value __step_ca_url 0; }; node_1(){ value __step_root_fp 1; }; node_2(){
-value FINGERPRINT a true; }; node_3(){ oneormore 2; }; node_4(){ required 0 1 3
-}; node_5(){ required 4; }; cat <<<' docopt_exit() {
-[[ -n $1 ]] && printf "%s\n" "$1" >&2; printf "%s\n" "${DOC:72:70}" >&2; exit 1
-}'; unset var___step_ca_url var___step_root_fp var_FINGERPRINT; parse 5 "$@"
-local prefix=${DOCOPT_PREFIX:-''}; unset "${prefix}__step_ca_url" \
-"${prefix}__step_root_fp" "${prefix}FINGERPRINT"
-eval "${prefix}"'__step_ca_url=${var___step_ca_url:-}'
-eval "${prefix}"'__step_root_fp=${var___step_root_fp:-}'
+trimmed_doc=${DOC:0:535}; usage=${DOC:72:61}; digest=9a19a; shorts=(-e -u -f)
+longs=(--expiry-threshhold --step-url --step-fp); argcounts=(1 1 1); node_0(){
+value __expiry_threshhold 0; }; node_1(){ value __step_url 1; }; node_2(){
+value __step_fp 2; }; node_3(){ value TS a true; }; node_4(){
+value FINGERPRINT a true; }; node_5(){ oneormore 3; }; node_6(){ optional 0 5; }
+node_7(){ oneormore 4; }; node_8(){ required 6 1 2 7; }; node_9(){ required 8; }
+cat <<<' docopt_exit() { [[ -n $1 ]] && printf "%s\n" "$1" >&2
+printf "%s\n" "${DOC:72:61}" >&2; exit 1; }'; unset var___expiry_threshhold \
+var___step_url var___step_fp var_TS var_FINGERPRINT; parse 9 "$@"
+local prefix=${DOCOPT_PREFIX:-''}; unset "${prefix}__expiry_threshhold" \
+"${prefix}__step_url" "${prefix}__step_fp" "${prefix}TS" "${prefix}FINGERPRINT"
+eval "${prefix}"'__expiry_threshhold=${var___expiry_threshhold:-336h}'
+eval "${prefix}"'__step_url=${var___step_url:-}'
+eval "${prefix}"'__step_fp=${var___step_fp:-}'
+if declare -p var_TS >/dev/null 2>&1; then eval "${prefix}"'TS=("${var_TS[@]}")'
+else eval "${prefix}"'TS=()'; fi
 if declare -p var_FINGERPRINT >/dev/null 2>&1; then
 eval "${prefix}"'FINGERPRINT=("${var_FINGERPRINT[@]}")'; else
 eval "${prefix}"'FINGERPRINT=()'; fi; local docopt_i=1
 [[ $BASH_VERSION =~ ^4.3 ]] && docopt_i=2; for ((;docopt_i>0;docopt_i--)); do
-declare -p "${prefix}__step_ca_url" "${prefix}__step_root_fp" \
-"${prefix}FINGERPRINT"; done; }
+declare -p "${prefix}__expiry_threshhold" "${prefix}__step_url" \
+"${prefix}__step_fp" "${prefix}TS" "${prefix}FINGERPRINT"; done; }
 # docopt parser above, complete command for generating this parser is `docopt.sh --library='"$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh"' update-sshd.sh`
   eval "$(docopt "$@")"
   check_all_deps
@@ -72,7 +85,7 @@ declare -p "${prefix}__step_ca_url" "${prefix}__step_root_fp" \
   export STEPPATH
   STEPPATH="$(mktemp -d)"
   # shellcheck disable=2154
-  "$pkgroot/fetch-ca.sh" "$__step_root_fp" > "$STEPPATH/cas/$__step_root_fp.pem"
+  "$pkgroot/fetch-ca.sh" "$__step_fp" > "$STEPPATH/cas/$__step_fp.pem"
   # shellcheck disable=2064
   trap "rm -rf \"$STEPPATH\"" EXIT
   # shellcheck disable=2016,2154
@@ -82,11 +95,13 @@ declare -p "${prefix}__step_ca_url" "${prefix}__step_root_fp" \
   "fingerprint": "%s",
   "redirect-url": ""
 }
-' "$__step_ca_url" "$__step_root_fp" "$__step_root_fp"
+' "$__step_url" "$__step_fp" "$__step_fp"
 
-  local ssh_host_keys=(ssh_host_ecdsa_key ssh_host_ed25519_key ssh_host_rsa_key) ssh_host_key renewed=false
-  for ssh_host_key in "${ssh_host_keys[@]}"; do
-    if (cd /etc/ssh && step ssh needs-renewal --expires-in 48h "${ssh_host_key}-cert.pub" 2>&1) | tee_verbose; then
+  local algo ssh_host_key renewed=false
+  # shellcheck disable=2154
+  for algo in "${__key_algo[@]}"; do
+    ssh_host_key="ssh_host_${algo}_key"
+    if (cd /etc/ssh && step ssh needs-renewal --expires-in "$__expiry_threshhold" "${ssh_host_key}-cert.pub" 2>&1) | tee_verbose; then
       (cd /etc/ssh && step ssh renew --force "${ssh_host_key}-cert.pub" "$ssh_host_key")
       renewed=true
     fi
