@@ -66,3 +66,9 @@ check_fp_format() {
 get_pubkey() {
   openssl x509 -pubkey -noout 2> >(LOGPROGRAM=openssl tee_verbose)
 }
+
+get_subject_field() {
+  local oid=$1 name=$2
+  openssl x509 -subject -noout -nameopt esc_ctrl,esc_msb,sep_multiline,lname | \
+    tail -n+2 | grep "\(^\|[[:space:]]\)\($oid\|$name\)=" | cut -d= -f2
+}

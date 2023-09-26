@@ -13,11 +13,11 @@ pkidb_sshd() {
 
   DOC="pkidb-sshd - Manage client CAs for openssh-server and renew its hostkey
 Usage:
-  pkidb-sshd [-e -k TS...] -u URL -f FP FINGERPRINT...
+  pkidb-sshd [options] [-k ALGO...] FINGERPRINT...
 
 Options:
-  -u --step-url URL          URL to the step-ca
-  -f --step-fp FP            Fingerprint of the step-ca root certificate
+  -f --step-root-fp FP       Fingerprint of the step-ca root certificate
+                             [default: \$STEP_ROOT_FP]
   -e --expiry-threshhold TS  Permitted remaining host certificate
                              lifetime before renewal [default: 336h]
   -k --key-algo ALGO         Host cert key algorithms to consider for renewal
@@ -27,28 +27,29 @@ Options:
 # shellcheck disable=2016,1090,1091,2034,2154
 docopt() { source "$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh" '1.0.0' || {
 ret=$?; printf -- "exit %d\n" "$ret"; exit "$ret"; }; set -e
-trimmed_doc=${DOC:0:535}; usage=${DOC:72:61}; digest=9a19a; shorts=(-e -u -f)
-longs=(--expiry-threshhold --step-url --step-fp); argcounts=(1 1 1); node_0(){
-value __expiry_threshhold 0; }; node_1(){ value __step_url 1; }; node_2(){
-value __step_fp 2; }; node_3(){ value TS a true; }; node_4(){
-value FINGERPRINT a true; }; node_5(){ oneormore 3; }; node_6(){ optional 0 5; }
-node_7(){ oneormore 4; }; node_8(){ required 6 1 2 7; }; node_9(){ required 8; }
-cat <<<' docopt_exit() { [[ -n $1 ]] && printf "%s\n" "$1" >&2
-printf "%s\n" "${DOC:72:61}" >&2; exit 1; }'; unset var___expiry_threshhold \
-var___step_url var___step_fp var_TS var_FINGERPRINT; parse 9 "$@"
-local prefix=${DOCOPT_PREFIX:-''}; unset "${prefix}__expiry_threshhold" \
-"${prefix}__step_url" "${prefix}__step_fp" "${prefix}TS" "${prefix}FINGERPRINT"
+trimmed_doc=${DOC:0:537}; usage=${DOC:72:57}; digest=53823; shorts=(-f -e -k)
+longs=(--step-root-fp --expiry-threshhold --key-algo); argcounts=(1 1 1)
+node_0(){ value __step_root_fp 0; }; node_1(){ value __expiry_threshhold 1; }
+node_2(){ value __key_algo 2 true; }; node_3(){ value FINGERPRINT a true; }
+node_4(){ optional 0 1; }; node_5(){ optional 4; }; node_6(){ oneormore 2; }
+node_7(){ optional 6; }; node_8(){ oneormore 3; }; node_9(){ required 5 7 8; }
+node_10(){ required 9; }; cat <<<' docopt_exit() {
+[[ -n $1 ]] && printf "%s\n" "$1" >&2; printf "%s\n" "${DOC:72:57}" >&2; exit 1
+}'; unset var___step_root_fp var___expiry_threshhold var___key_algo \
+var_FINGERPRINT; parse 10 "$@"; local prefix=${DOCOPT_PREFIX:-''}
+unset "${prefix}__step_root_fp" "${prefix}__expiry_threshhold" \
+"${prefix}__key_algo" "${prefix}FINGERPRINT"
+eval "${prefix}"'__step_root_fp=${var___step_root_fp:-'"'"'$STEP_ROOT_FP'"'"'}'
 eval "${prefix}"'__expiry_threshhold=${var___expiry_threshhold:-336h}'
-eval "${prefix}"'__step_url=${var___step_url:-}'
-eval "${prefix}"'__step_fp=${var___step_fp:-}'
-if declare -p var_TS >/dev/null 2>&1; then eval "${prefix}"'TS=("${var_TS[@]}")'
-else eval "${prefix}"'TS=()'; fi
+if declare -p var___key_algo >/dev/null 2>&1; then
+eval "${prefix}"'__key_algo=("${var___key_algo[@]}")'; else
+eval "${prefix}"'__key_algo=(ecdsa ed25519 rsa)'; fi
 if declare -p var_FINGERPRINT >/dev/null 2>&1; then
 eval "${prefix}"'FINGERPRINT=("${var_FINGERPRINT[@]}")'; else
 eval "${prefix}"'FINGERPRINT=()'; fi; local docopt_i=1
 [[ $BASH_VERSION =~ ^4.3 ]] && docopt_i=2; for ((;docopt_i>0;docopt_i--)); do
-declare -p "${prefix}__expiry_threshhold" "${prefix}__step_url" \
-"${prefix}__step_fp" "${prefix}TS" "${prefix}FINGERPRINT"; done; }
+declare -p "${prefix}__step_root_fp" "${prefix}__expiry_threshhold" \
+"${prefix}__key_algo" "${prefix}FINGERPRINT"; done; }
 # docopt parser above, complete command for generating this parser is `docopt.sh --library='"$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh"' pkidb-sshd.sh`
   eval "$(docopt "$@")"
   check_all_deps
@@ -82,20 +83,10 @@ declare -p "${prefix}__expiry_threshhold" "${prefix}__step_url" \
   "$pkgroot/pkidb-client-krl.sh" --dest "$krl_path" --sigdest "$krlsig_path" "${cert_paths[@]}"
   info "The client CA certs and the krl have been updated"
 
-  export STEPPATH
-  STEPPATH="$(mktemp -d)"
   # shellcheck disable=2154
-  "$pkgroot/pkidb-ca.sh" "$__step_fp" > "$STEPPATH/cas/$__step_fp.pem"
-  # shellcheck disable=2064
-  trap "rm -rf \"$STEPPATH\"" EXIT
-  # shellcheck disable=2016,2154
-  printf '{
-  "ca-url": "%s",
-  "root": "$STEPPATH/cas/%s.pem",
-  "fingerprint": "%s",
-  "redirect-url": ""
-}
-' "$__step_url" "$__step_fp" "$__step_fp"
+  [[ $__step_root_fp != "\$STEP_ROOT_FP" ]] || __step_root_fp="${STEP_ROOT_FP:?"\$STEP_ROOT_FP is not defined"}"
+  export STEP_URL STEP_ROOT_FP=$__step_root_fp
+  STEP_URL=$(LOGLEVEL=warning "$pkgroot/pkidb-ca.sh" "$__step_root_fp" | get_subject_field "2.5.4.87" url)
 
   local algo ssh_host_key renewed=false
   # shellcheck disable=2154

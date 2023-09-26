@@ -3,7 +3,7 @@
     "orbit-online/checkdeps": "v1.0.0",
     "orbit-online/records.sh": "v0.9.3",
     "andsens/docopt.sh": "v1.0.0-upkg",
-    "orbit-online/smallstep-wrapper": "v1.2.0"
+    "orbit-online/smallstep-wrapper": "v2.0.0"
   },
   "assets": ["common.sh"],
   "commands": {
