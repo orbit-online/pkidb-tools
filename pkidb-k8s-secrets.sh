@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-main() {
+pkidb_k8s_secrets() {
   set -eo pipefail
   shopt -s inherit_errexit
   local pkgroot
@@ -16,7 +16,7 @@ Notes:
 * Make sure to specify \$PKIDBURL
 * The namespace can also be specified via \$POD_NAMESPACE
 "
-# docopt parser below, refresh this parser with `docopt.sh k8s-secrets.sh`
+# docopt parser below, refresh this parser with `docopt.sh pkidb-k8s-secrets.sh`
 # shellcheck disable=2016,1090,1091,2034,2154
 docopt() { source "$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh" '1.0.0' || {
 ret=$?; printf -- "exit %d\n" "$ret"; exit "$ret"; }; set -e
@@ -33,7 +33,7 @@ eval "${prefix}"'FINGERPRINT=("${var_FINGERPRINT[@]}")'; else
 eval "${prefix}"'FINGERPRINT=()'; fi; local docopt_i=1
 [[ $BASH_VERSION =~ ^4.3 ]] && docopt_i=2; for ((;docopt_i>0;docopt_i--)); do
 declare -p "${prefix}__namespace" "${prefix}FINGERPRINT"; done; }
-# docopt parser above, complete command for generating this parser is `docopt.sh --library='"$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh"' k8s-secrets.sh`
+# docopt parser above, complete command for generating this parser is `docopt.sh --library='"$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh"' pkidb-k8s-secrets.sh`
   eval "$(docopt "$@")"
 
   # shellcheck disable=2154
@@ -42,7 +42,7 @@ declare -p "${prefix}__namespace" "${prefix}FINGERPRINT"; done; }
   # shellcheck disable=2153
   for fingerprint in "${FINGERPRINT[@]}"; do
     secret_name=${fingerprint,,}
-    cert=$("$pkgroot/fetch-ca.sh" "$fingerprint")
+    cert=$("$pkgroot/pkidb-ca.sh" "$fingerprint")
     printf '
 apiVersion: v1
 kind: Secret
@@ -56,4 +56,4 @@ data:
   done
 }
 
-main "$@"
+pkidb_k8s_secrets "$@"

@@ -13,7 +13,7 @@ RUN wget -qO- https://raw.githubusercontent.com/orbit-online/upkg/v0.10.2/upkg.s
 
 WORKDIR /pkidb-tools
 COPY common.sh k8s-secrets/upkg.json /pkidb-tools
-COPY --chmod=0755 k8s-secrets.sh fetch-ca.sh /pkidb-tools
+COPY --chmod=0755 pkidb-k8s-secrets.sh pkidb-ca.sh /pkidb-tools
 RUN upkg install
 
-ENTRYPOINT ["/pkidb-tools/k8s-secrets.sh"]
+ENTRYPOINT ["/pkidb-tools/pkidb-k8s-secrets.sh"]

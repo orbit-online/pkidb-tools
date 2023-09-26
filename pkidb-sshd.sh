@@ -23,7 +23,7 @@ Options:
   -k --key-algo ALGO         Host cert key algorithms to consider for renewal
                              [default: ecdsa ed25519 rsa]
 "
-# docopt parser below, refresh this parser with `docopt.sh update-sshd.sh`
+# docopt parser below, refresh this parser with `docopt.sh pkidb-sshd.sh`
 # shellcheck disable=2016,1090,1091,2034,2154
 docopt() { source "$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh" '1.0.0' || {
 ret=$?; printf -- "exit %d\n" "$ret"; exit "$ret"; }; set -e
@@ -49,7 +49,7 @@ eval "${prefix}"'FINGERPRINT=()'; fi; local docopt_i=1
 [[ $BASH_VERSION =~ ^4.3 ]] && docopt_i=2; for ((;docopt_i>0;docopt_i--)); do
 declare -p "${prefix}__expiry_threshhold" "${prefix}__step_url" \
 "${prefix}__step_fp" "${prefix}TS" "${prefix}FINGERPRINT"; done; }
-# docopt parser above, complete command for generating this parser is `docopt.sh --library='"$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh"' update-sshd.sh`
+# docopt parser above, complete command for generating this parser is `docopt.sh --library='"$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh"' pkidb-sshd.sh`
   eval "$(docopt "$@")"
   check_all_deps
   [[ $EUID = 0 ]] || fatal "You must be root"
@@ -73,19 +73,19 @@ declare -p "${prefix}__expiry_threshhold" "${prefix}__step_url" \
   done < <(find "$certs_path" -type f -print0)
   # Update specified CAs
   for fingerprint in "${FINGERPRINT[@]}"; do
-    "$pkgroot/fetch-ca.sh" --dest "${certs_path}/${fingerprint}.pem" "$fingerprint"
+    "$pkgroot/pkidb-ca.sh" --dest "${certs_path}/${fingerprint}.pem" "$fingerprint"
     cert_paths+=("${certs_path}/${fingerprint}.pem")
     key_lines+=("$(ssh-keygen -i -m PKCS8 -f <(get_pubkey <"${certs_path}/${fingerprint}.pem"))")
   done
   umask 133
   printf "%s\n" "${key_lines[@]}" >"$ca_keys_path"
-  "$pkgroot/fetch-client-krl.sh" --dest "$krl_path" --sigdest "$krlsig_path" "${cert_paths[@]}"
+  "$pkgroot/pkidb-client-krl.sh" --dest "$krl_path" --sigdest "$krlsig_path" "${cert_paths[@]}"
   info "The client CA certs and the krl have been updated"
 
   export STEPPATH
   STEPPATH="$(mktemp -d)"
   # shellcheck disable=2154
-  "$pkgroot/fetch-ca.sh" "$__step_fp" > "$STEPPATH/cas/$__step_fp.pem"
+  "$pkgroot/pkidb-ca.sh" "$__step_fp" > "$STEPPATH/cas/$__step_fp.pem"
   # shellcheck disable=2064
   trap "rm -rf \"$STEPPATH\"" EXIT
   # shellcheck disable=2016,2154

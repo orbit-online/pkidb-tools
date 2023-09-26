@@ -7,13 +7,13 @@
   },
   "assets": ["common.sh"],
   "commands": {
-    "pkidb-k8s-secrets": "k8s-secrets.sh",
-    "pkidb-ca": "fetch-ca.sh",
-    "pkidb-client-krl": "fetch-client-krl.sh",
-    "pkidb-crl": "fetch-crl.sh",
-    "pkidb-browser": "update-browser.sh",
-    "pkidb-pam": "update-pam.sh",
-    "pkidb-os": "update-os.sh",
-    "pkidb-sshd": "update-sshd.sh"
+    "pkidb-k8s-secrets": "pkidb-k8s-secrets.sh",
+    "pkidb-ca": "pkidb-ca.sh",
+    "pkidb-client-krl": "pkidb-client-krl.sh",
+    "pkidb-crl": "pkidb-crl.sh",
+    "pkidb-browser": "pkidb-browser.sh",
+    "pkidb-pam": "pkidb-pam.sh",
+    "pkidb-os": "pkidb-os.sh",
+    "pkidb-sshd": "pkidb-sshd.sh"
   }
 }

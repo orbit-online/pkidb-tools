@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-pkidb_fetch_ca() {
+pkidb_ca() {
   set -eo pipefail
   shopt -s inherit_errexit
   local pkgroot
@@ -15,7 +15,7 @@ pkidb_fetch_ca() {
 Usage:
   pkidb-ca [--dest=CAPATH] FINGERPRINT
 "
-# docopt parser below, refresh this parser with `docopt.sh fetch-ca.sh`
+# docopt parser below, refresh this parser with `docopt.sh pkidb-ca.sh`
 # shellcheck disable=2016,1090,1091,2034
 docopt() { source "$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh" '1.0.0' || {
 ret=$?; printf -- "exit %d\n" "$ret"; exit "$ret"; }; set -e
@@ -30,7 +30,7 @@ local prefix=${DOCOPT_PREFIX:-''}; unset "${prefix}__dest" \
 eval "${prefix}"'FINGERPRINT=${var_FINGERPRINT:-}'; local docopt_i=1
 [[ $BASH_VERSION =~ ^4.3 ]] && docopt_i=2; for ((;docopt_i>0;docopt_i--)); do
 declare -p "${prefix}__dest" "${prefix}FINGERPRINT"; done; }
-# docopt parser above, complete command for generating this parser is `docopt.sh --library='"$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh"' fetch-ca.sh`
+# docopt parser above, complete command for generating this parser is `docopt.sh --library='"$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh"' pkidb-ca.sh`
   eval "$(docopt "$@")"
   check_all_deps
 
@@ -82,4 +82,4 @@ check_expiration() {
   openssl x509 -checkend 0 2>&1 | LOGPROGRAM=openssl tee_verbose
 }
 
-pkidb_fetch_ca "$@"
+pkidb_ca "$@"

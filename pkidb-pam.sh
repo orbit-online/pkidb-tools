@@ -15,7 +15,7 @@ pkidb_pam() {
 Usage:
   pkidb-pam FINGERPRINT...
 "
-# docopt parser below, refresh this parser with `docopt.sh update-pam.sh`
+# docopt parser below, refresh this parser with `docopt.sh pkidb-pam.sh`
 # shellcheck disable=2016,1090,1091,2034,2154
 docopt() { source "$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh" '1.0.0' || {
 ret=$?; printf -- "exit %d\n" "$ret"; exit "$ret"; }; set -e
@@ -30,7 +30,7 @@ eval "${prefix}"'FINGERPRINT=("${var_FINGERPRINT[@]}")'; else
 eval "${prefix}"'FINGERPRINT=()'; fi; local docopt_i=1
 [[ $BASH_VERSION =~ ^4.3 ]] && docopt_i=2; for ((;docopt_i>0;docopt_i--)); do
 declare -p "${prefix}FINGERPRINT"; done; }
-# docopt parser above, complete command for generating this parser is `docopt.sh --library='"$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh"' update-pam.sh`
+# docopt parser above, complete command for generating this parser is `docopt.sh --library='"$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh"' pkidb-pam.sh`
   eval "$(docopt "$@")"
   check_all_deps
   [[ $EUID = 0 ]] || fatal "You must be root"
@@ -61,7 +61,7 @@ declare -p "${prefix}FINGERPRINT"; done; }
   done < <(find "$certs_path" -type f -print0)
   # Update specified CAs
   for fingerprint in "${FINGERPRINT[@]}"; do
-    "$pkgroot/fetch-ca.sh" --dest "${certs_path}/${fingerprint}.pem" "$fingerprint"
+    "$pkgroot/pkidb-ca.sh" --dest "${certs_path}/${fingerprint}.pem" "$fingerprint"
   done
   (cd "$certs_path" && pkcs11_make_hash_link)
 
@@ -87,7 +87,7 @@ declare -p "${prefix}FINGERPRINT"; done; }
   done < <(find "$crls_path" -type f -print0)
   # Update CRLs for the specified CAs
   for fingerprint in "${FINGERPRINT[@]}"; do
-    "$pkgroot/fetch-crl.sh" --dest "${crls_path}/${fingerprint}.pem" "${certs_path}/${fingerprint}.pem"
+    "$pkgroot/pkidb-crl.sh" --dest "${crls_path}/${fingerprint}.pem" "${certs_path}/${fingerprint}.pem"
   done
   (cd "$crls_path" && pkcs11_make_hash_link)
 

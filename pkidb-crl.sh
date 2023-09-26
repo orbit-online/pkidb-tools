@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-pkidb_fetch_crl() {
+pkidb_crl() {
   set -eo pipefail
   shopt -s inherit_errexit
   local pkgroot
@@ -15,7 +15,7 @@ pkidb_fetch_crl() {
 Usage:
   pkidb-crl --dest=CRLPATH CAPATH
 "
-# docopt parser below, refresh this parser with `docopt.sh fetch-crl.sh`
+# docopt parser below, refresh this parser with `docopt.sh pkidb-crl.sh`
 # shellcheck disable=2016,1090,1091,2034
 docopt() { source "$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh" '1.0.0' || {
 ret=$?; printf -- "exit %d\n" "$ret"; exit "$ret"; }; set -e
@@ -29,7 +29,7 @@ parse 3 "$@"; local prefix=${DOCOPT_PREFIX:-''}; unset "${prefix}__dest" \
 eval "${prefix}"'CAPATH=${var_CAPATH:-}'; local docopt_i=1
 [[ $BASH_VERSION =~ ^4.3 ]] && docopt_i=2; for ((;docopt_i>0;docopt_i--)); do
 declare -p "${prefix}__dest" "${prefix}CAPATH"; done; }
-# docopt parser above, complete command for generating this parser is `docopt.sh --library='"$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh"' fetch-crl.sh`
+# docopt parser above, complete command for generating this parser is `docopt.sh --library='"$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh"' pkidb-crl.sh`
   eval "$(docopt "$@")"
   check_all_deps
 
@@ -71,4 +71,4 @@ check_crl() {
   fi
 }
 
-pkidb_fetch_crl "$@"
+pkidb_crl "$@"

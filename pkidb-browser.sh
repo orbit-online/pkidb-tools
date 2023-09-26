@@ -15,7 +15,7 @@ pkidb_browser() {
 Usage:
   pkidb-browser FINGERPRINT...
 "
-# docopt parser below, refresh this parser with `docopt.sh update-browser.sh`
+# docopt parser below, refresh this parser with `docopt.sh pkidb-browser.sh`
 # shellcheck disable=2016,1090,1091,2034,2154
 docopt() { source "$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh" '1.0.0' || {
 ret=$?; printf -- "exit %d\n" "$ret"; exit "$ret"; }; set -e
@@ -30,7 +30,7 @@ eval "${prefix}"'FINGERPRINT=("${var_FINGERPRINT[@]}")'; else
 eval "${prefix}"'FINGERPRINT=()'; fi; local docopt_i=1
 [[ $BASH_VERSION =~ ^4.3 ]] && docopt_i=2; for ((;docopt_i>0;docopt_i--)); do
 declare -p "${prefix}FINGERPRINT"; done; }
-# docopt parser above, complete command for generating this parser is `docopt.sh --library='"$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh"' update-browser.sh`
+# docopt parser above, complete command for generating this parser is `docopt.sh --library='"$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh"' pkidb-browser.sh`
   eval "$(docopt "$@")"
   check_all_deps
 
@@ -72,7 +72,7 @@ declare -p "${prefix}FINGERPRINT"; done; }
       tmp_ca_path=$(mktemp)
       # shellcheck disable=2064
       trap "rm '$tmp_ca_path'" EXIT
-      "$pkgroot/fetch-ca.sh" "$fingerprint" > "$tmp_ca_path"
+      "$pkgroot/pkidb-ca.sh" "$fingerprint" > "$tmp_ca_path"
       certutil -d "$nssdbpath" -A -n "$fingerprint" -t "$expected_trust" -i "$tmp_ca_path" 2> >(LOGPROGRAM=certutil tee_verbose)
       changed=true
       rm "$tmp_ca_path"
