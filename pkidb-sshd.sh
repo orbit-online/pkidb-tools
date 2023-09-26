@@ -84,9 +84,13 @@ declare -p "${prefix}__step_root_fp" "${prefix}__expiry_threshhold" \
   info "The client CA certs and the krl have been updated"
 
   # shellcheck disable=2154
-  [[ $__step_root_fp != "\$STEP_ROOT_FP" ]] || __step_root_fp="${STEP_ROOT_FP:?"\$STEP_ROOT_FP is not defined"}"
-  export STEP_URL STEP_ROOT_FP=$__step_root_fp
-  STEP_URL=$(LOGLEVEL=warning "$pkgroot/pkidb-ca.sh" "$__step_root_fp" | get_subject_field "2.5.4.87" url)
+  if [[ $__step_root_fp != "\$STEP_ROOT_FP" ]]; then
+    export STEP_ROOT_FP=$__step_root_fp
+  elif [[ -z $STEP_ROOT_FP ]]; then
+    fatal "\$STEP_ROOT_FP is not defined"
+  fi
+  export STEP_URL
+  STEP_URL=$(LOGLEVEL=warning "$pkgroot/pkidb-ca.sh" "$STEP_ROOT_FP" | get_subject_field "2.5.4.87" url)
 
   local algo ssh_host_key renewed=false
   # shellcheck disable=2154
