@@ -44,6 +44,7 @@ declare -p "${prefix}__dir" "${prefix}__san" "${prefix}FQDN"; done; }
   eval "$(docopt "$@")"
   (
     [[ $FQDN = *.local ]] || fatal "The FQDN '%s' must be a .local domain" "$FQDN"
+    contains_element "$FQDN" "${__san[@]}" || __san=("$FQDN" "${__san[@]}")
     [[ -z $__dir ]] || cd "$__dir"
     local domains_changed=false
     if [[ -e bundle.pem ]]; then
