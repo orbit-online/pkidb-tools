@@ -7,6 +7,8 @@ main() {
   pkgroot=$(upkg root "${BASH_SOURCE[0]}")
   # shellcheck source=.upkg/orbit-online/records.sh/records.sh
   source "$pkgroot/.upkg/orbit-online/records.sh/records.sh"
+  # shellcheck source=.upkg/orbit-online/collections.sh/collections.sh
+  source "$pkgroot/.upkg/orbit-online/collections.sh/collections.sh"
   # shellcheck source=common.sh
   source "$pkgroot/common.sh"
 
@@ -49,7 +51,6 @@ declare -p "${prefix}__dir" "${prefix}__san" "${prefix}FQDN"; done; }
       cert=$(sed '/END CERTIFICATE/q' bundle.pem)
       readarray -t cert_domains <<<"$(get_sans <<<"$cert")"
       cert_domains+=("$(get_subject_field '2.5.4.3' 'commonName' <<<"$cert")")
-      join_by() { local IFS="$1"; shift; echo "$*"; }
       if ! cmp --silent <(sort <(join_by $'\n' "${cert_domains[@]}")) <(sort <(join_by $'\n' "${requested_domains[@]}")); then
         domains_changed=true
       fi
