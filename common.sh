@@ -72,3 +72,7 @@ get_subject_field() {
   openssl x509 -subject -noout -nameopt esc_ctrl,esc_msb,sep_multiline,lname | \
     tail -n+2 | grep "\(^\|[[:space:]]\)\($oid\|$name\)=" | cut -d= -f2
 }
+
+get_sans() {
+  openssl x509 -noout -ext subjectAltName | tail -n1 | grep -Po '(?<=DNS:)[^,]+'
+}

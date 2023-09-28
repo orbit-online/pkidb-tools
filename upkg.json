@@ -15,6 +15,7 @@
     "pkidb-pam": "pkidb-pam.sh",
     "pkidb-os": "pkidb-os.sh",
     "pkidb-sshd": "pkidb-sshd.sh",
-    "pkidb-step": "pkidb-step.sh"
+    "pkidb-step": "pkidb-step.sh",
+    "sign-dev-tls-cert": "sign-dev-tls-cert.sh"
   }
 }
