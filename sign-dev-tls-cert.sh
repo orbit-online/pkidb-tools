@@ -67,7 +67,7 @@ declare -p "${prefix}__dir" "${prefix}__san" "${prefix}FQDN"; done; }
         san_opts+=(--san "$domain")
       done
       pkidb-step ca certificate "${san_opts[@]}" --force "$FQDN" bundle.pem key.pem
-    elif STEP_SKIP_P11_KIT=true pkidb-step certificate needs-renewal --expires-in=6d bundle.pem 2>&1 | LOGPROGRAM=step tee_info; then
+    elif STEP_SKIP_P11_KIT=true pkidb-step certificate needs-renewal --expires-in=50% bundle.pem 2>&1 | LOGPROGRAM=step tee_info; then
       # Certificate is still valid. Renew without having to ask for YubiKey access.
       STEP_SKIP_P11_KIT=true pkidb-step ca renew --force bundle.pem key.pem 2>&1 | LOGPROGRAM=step tee_info
     fi
