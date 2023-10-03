@@ -61,7 +61,7 @@ declare -p "${prefix}FINGERPRINT"; done; }
       fi
       existing_fingerprints+=("$fingerprint")
     else
-      info "Found unspecified CA with fingerprint '%s'. Removing."
+      info "Found unspecified CA with fingerprint '%s'. Removing." "$fingerprint"
       certutil -d "$nssdbpath" -D -n "$nickname" 2> >(LOGPROGRAM=certutil tee_verbose)
     fi
   done < <(certutil -d "$nssdbpath" -L 2> >(LOGPROGRAM=certutil tee_verbose) | tail -n+5 | sed 's/ * \([pPcCTu,]\+\) \?$/\t\1/g')

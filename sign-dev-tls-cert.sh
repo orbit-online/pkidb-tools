@@ -57,7 +57,8 @@ declare -p "${prefix}__dir" "${prefix}__san" "${prefix}FQDN"; done; }
       fi
     fi
     # shellcheck disable=2154
-    if [[ ! -e key.pem || ! -e bundle.pem ]] || $domains_changed || STEP_SKIP_P11_KIT=true pkidb-step certificate needs-renewal --expires-in=100% bundle.pem; then
+    if [[ ! -e key.pem || ! -e bundle.pem ]] || $domains_changed || \
+      STEP_SKIP_P11_KIT=true pkidb-step certificate needs-renewal --expires-in=100% bundle.pem 2>&1 | LOGPROGRAM=step tee_info; then
       # Certificate does not exist or has expired, we must authenticate with a YubiKey
       export STEP_PIN_DESC="${FQDN} must be issued/renewed. To do that \`step\` needs to authenticate to step-ca with your YubiKey #%s"
       local domain san_opts=()
@@ -66,9 +67,9 @@ declare -p "${prefix}__dir" "${prefix}__san" "${prefix}FQDN"; done; }
         san_opts+=(--san "$domain")
       done
       pkidb-step ca certificate "${san_opts[@]}" --force "$FQDN" bundle.pem key.pem
-    elif STEP_SKIP_P11_KIT=true pkidb-step certificate needs-renewal --expires-in=6d bundle.pem >/dev/null 2>&1; then
+    elif STEP_SKIP_P11_KIT=true pkidb-step certificate needs-renewal --expires-in=6d bundle.pem 2>&1 | LOGPROGRAM=step tee_info; then
       # Certificate is still valid. Renew without having to ask for YubiKey access.
-      STEP_SKIP_P11_KIT=true pkidb-step ca renew --force bundle.pem key.pem
+      STEP_SKIP_P11_KIT=true pkidb-step ca renew --force bundle.pem key.pem 2>&1 | LOGPROGRAM=step tee_info
     fi
   )
 }
