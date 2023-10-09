@@ -19,7 +19,7 @@ Options:
   -f --step-root-fp FP       Fingerprint of the step-ca root certificate
                              [default: \$STEP_ROOT_FP]
   -e --expiry-threshhold TS  Permitted remaining host certificate
-                             lifetime before renewal [default: 336h]
+                             lifetime before renewal [default: 50%]
   -k --key-algo ALGO         Host cert key algorithms to consider for renewal
                              [default: ecdsa ed25519 rsa]
 "
@@ -27,7 +27,7 @@ Options:
 # shellcheck disable=2016,1090,1091,2034,2154
 docopt() { source "$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh" '1.0.0' || {
 ret=$?; printf -- "exit %d\n" "$ret"; exit "$ret"; }; set -e
-trimmed_doc=${DOC:0:537}; usage=${DOC:72:57}; digest=53823; shorts=(-f -e -k)
+trimmed_doc=${DOC:0:536}; usage=${DOC:72:57}; digest=e178e; shorts=(-f -e -k)
 longs=(--step-root-fp --expiry-threshhold --key-algo); argcounts=(1 1 1)
 node_0(){ value __step_root_fp 0; }; node_1(){ value __expiry_threshhold 1; }
 node_2(){ value __key_algo 2 true; }; node_3(){ value FINGERPRINT a true; }
@@ -40,7 +40,7 @@ var_FINGERPRINT; parse 10 "$@"; local prefix=${DOCOPT_PREFIX:-''}
 unset "${prefix}__step_root_fp" "${prefix}__expiry_threshhold" \
 "${prefix}__key_algo" "${prefix}FINGERPRINT"
 eval "${prefix}"'__step_root_fp=${var___step_root_fp:-'"'"'$STEP_ROOT_FP'"'"'}'
-eval "${prefix}"'__expiry_threshhold=${var___expiry_threshhold:-336h}'
+eval "${prefix}"'__expiry_threshhold=${var___expiry_threshhold:-50%}'
 if declare -p var___key_algo >/dev/null 2>&1; then
 eval "${prefix}"'__key_algo=("${var___key_algo[@]}")'; else
 eval "${prefix}"'__key_algo=(ecdsa ed25519 rsa)'; fi
