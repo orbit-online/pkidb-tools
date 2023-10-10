@@ -42,8 +42,8 @@ declare -p "${prefix}FINGERPRINT"; done; }
   local line line_matched=false nssdbpath="sql:$HOME/.pki/nssdb" expected_trust=CT,c,c
   # Remove unspecified CAs
   while read -r -d $'\n' line; do
-    if [[ $line =~ ^(.?+)\ ([pPcCTu,]+)$ ]]; then
-      nickname=${BASH_REMATCH[1]%%+([[:space:]])}
+  if [[ $line =~ ^(.+[^ ])\ +([pPcCTu,]+)\ *$ ]]; then
+      nickname=${BASH_REMATCH[1]}
       trust=${BASH_REMATCH[2]}
       debug "Parsed line. Nickname: '%s'. Trust: '%s'" "$nickname" "$trust"
       line_matched=true
