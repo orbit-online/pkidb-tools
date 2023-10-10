@@ -39,11 +39,19 @@ declare -p "${prefix}FINGERPRINT"; done; }
   fi
 
   local fingerprint nickname trust existing_fingerprints=() tmp_ca_path changed=false
-  local nssdbpath="sql:$HOME/.pki/nssdb" expected_trust=CT,c,c
+  local line line_matched=false nssdbpath="sql:$HOME/.pki/nssdb" expected_trust=CT,c,c
   # Remove unspecified CAs
-  while IFS=$'\t' read -r -d $'\n' nickname trust; do
-    if [[ -z $nickname || -z $trust ]]; then
-      fatal "Unable to parse output from 'certutil -L'"
+  while read -r -d $'\n' line; do
+    if [[ $line =~ ^(.?+)\ ([pPcCTu,]+)$ ]]; then
+      nickname=${BASH_REMATCH[1]%%+([[:space:]])}
+      trust=${BASH_REMATCH[2]}
+      debug "Parsed line. Nickname: '%s'. Trust: '%s'" "$nickname" "$trust"
+      line_matched=true
+    elif $line_matched; then
+      fatal "Unable to parse output line from 'certutil -L': %s" "$line"
+    else
+      debug "Header line not parsed, skipping: %s" "$line"
+      continue
     fi
     fingerprint=$(get_fingerprint "$nssdbpath" "$nickname")
     # shellcheck disable=2153
@@ -64,7 +72,7 @@ declare -p "${prefix}FINGERPRINT"; done; }
       info "Found unspecified CA with fingerprint '%s'. Removing." "$fingerprint"
       certutil -d "$nssdbpath" -D -n "$nickname" 2> >(LOGPROGRAM=certutil tee_verbose)
     fi
-  done < <(certutil -d "$nssdbpath" -L 2> >(LOGPROGRAM=certutil tee_verbose) | tail -n+5 | sed 's/ * \([pPcCTu,]\+\) \?$/\t\1/g')
+  done < <(certutil -d "$nssdbpath" -L 2> >(LOGPROGRAM=certutil tee_verbose))
   # Update specified CAs
   for fingerprint in "${FINGERPRINT[@]}"; do
     if [[ ! ${existing_fingerprints[*]} =~ (^|[[:space:]])$fingerprint($|[[:space:]]) ]]; then
