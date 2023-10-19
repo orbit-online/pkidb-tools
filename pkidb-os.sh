@@ -35,7 +35,7 @@ declare -p "${prefix}FINGERPRINT"; done; }
   check_all_deps
   [[ $EUID = 0 ]] || fatal "You must be root"
 
-  local fingerprint cert_path certs_path=/usr/local/share/ca-certificates
+  local ret=0 fingerprint cert_path certs_path=/usr/local/share/ca-certificates
   # Remove unspecified CAs
   while read -r -d $'\0' cert_path; do
     if ! fingerprint=$(generate_fingerprint <"$cert_path"); then
@@ -52,11 +52,12 @@ declare -p "${prefix}FINGERPRINT"; done; }
   done < <(find "$certs_path" -type f -print0)
   # Update specified CAs
   for fingerprint in "${FINGERPRINT[@]}"; do
-    "$pkgroot/pkidb-ca.sh" --dest "${certs_path}/${fingerprint}.crt" "$fingerprint"
+    "$pkgroot/pkidb-ca.sh" --dest "${certs_path}/${fingerprint}.crt" "$fingerprint" || ret=$?
   done
   /usr/sbin/update-ca-certificates 2>&1 | LOGPROGRAM=update-ca-certificates tee_verbose
 
   info "The OS CA certificates have been updated"
+  return $ret
 }
 
 pkidb_os "$@"

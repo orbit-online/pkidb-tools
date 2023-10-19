@@ -35,7 +35,7 @@ declare -p "${prefix}FINGERPRINT"; done; }
   check_all_deps
   [[ $EUID = 0 ]] || fatal "You must be root"
 
-  local fingerprint cert_path cert_link_path certs_path=/etc/pam_pkcs11/cacerts
+  local ret=0 fingerprint cert_path cert_link_path certs_path=/etc/pam_pkcs11/cacerts
   # Remove unspecified CAs
   while read -r -d $'\0' cert_path; do
     if ! fingerprint=$(generate_fingerprint <"$cert_path"); then
@@ -61,9 +61,9 @@ declare -p "${prefix}FINGERPRINT"; done; }
   done < <(find "$certs_path" -type f -print0)
   # Update specified CAs
   for fingerprint in "${FINGERPRINT[@]}"; do
-    "$pkgroot/pkidb-ca.sh" --dest "${certs_path}/${fingerprint}.pem" "$fingerprint"
+    "$pkgroot/pkidb-ca.sh" --dest "${certs_path}/${fingerprint}.pem" "$fingerprint" || ret=$?
   done
-  (cd "$certs_path" && pkcs11_make_hash_link)
+  (cd "$certs_path" && pkcs11_make_hash_link) || ret=$?
 
   local crl_path crl_link_path crls_path=/etc/pam_pkcs11/crls
   # Remove unspecified CA CRLs
@@ -87,11 +87,12 @@ declare -p "${prefix}FINGERPRINT"; done; }
   done < <(find "$crls_path" -type f -print0)
   # Update CRLs for the specified CAs
   for fingerprint in "${FINGERPRINT[@]}"; do
-    "$pkgroot/pkidb-crl.sh" --dest "${crls_path}/${fingerprint}.pem" "${certs_path}/${fingerprint}.pem"
+    "$pkgroot/pkidb-crl.sh" --dest "${crls_path}/${fingerprint}.pem" "${certs_path}/${fingerprint}.pem" || ret=$?
   done
   (cd "$crls_path" && pkcs11_make_hash_link)
 
   info "The PAM PKCS#11 CA certificates and their CRLs have been updated"
+  return $ret
 }
 
 pkidb_pam "$@"

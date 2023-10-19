@@ -55,8 +55,8 @@ declare -p "${prefix}__step_root_fp" "${prefix}__expiry_threshhold" \
   check_all_deps
   [[ $EUID = 0 ]] || fatal "You must be root"
 
-  local certs_path=/etc/ssh/client_ca_certs ca_keys_path=/etc/ssh/client_ca_keys \
-    cert_paths=() key_lines=() \
+  local ret=0 certs_path=/etc/ssh/client_ca_certs ca_keys_path=/etc/ssh/client_ca_keys \
+    cert_paths=() ssh_pubkey key_lines=() \
     krl_path=/etc/ssh/revoked_client_keys.krl krlsig_path=/etc/ssh/revoked_client_keys.krl.sig
   [[ -d "$certs_path" ]] || mkdir "$certs_path"
   while read -r -d $'\0' cert_path; do
@@ -74,13 +74,14 @@ declare -p "${prefix}__step_root_fp" "${prefix}__expiry_threshhold" \
   done < <(find "$certs_path" -type f -print0)
   # Update specified CAs
   for fingerprint in "${FINGERPRINT[@]}"; do
-    "$pkgroot/pkidb-ca.sh" --dest "${certs_path}/${fingerprint}.pem" "$fingerprint"
+    "$pkgroot/pkidb-ca.sh" --dest "${certs_path}/${fingerprint}.pem" "$fingerprint" || { ret=$?; continue; }
     cert_paths+=("${certs_path}/${fingerprint}.pem")
-    key_lines+=("$(ssh-keygen -i -m PKCS8 -f <(get_pubkey <"${certs_path}/${fingerprint}.pem"))")
+    ssh_pubkey=$(ssh-keygen -i -m PKCS8 -f <(get_pubkey <"${certs_path}/${fingerprint}.pem")) || { ret=$?; continue; }
+    key_lines+=("$ssh_pubkey")
   done
   umask 133
   printf "%s\n" "${key_lines[@]}" >"$ca_keys_path"
-  "$pkgroot/pkidb-client-krl.sh" --dest "$krl_path" --sigdest "$krlsig_path" "${cert_paths[@]}"
+  "$pkgroot/pkidb-client-krl.sh" --dest "$krl_path" --sigdest "$krlsig_path" "${cert_paths[@]}" || ret=$?
   info "The client CA certs and the krl have been updated"
 
   # shellcheck disable=2154
@@ -97,8 +98,11 @@ declare -p "${prefix}__step_root_fp" "${prefix}__expiry_threshhold" \
   for algo in "${__key_algo[@]}"; do
     ssh_host_key="ssh_host_${algo}_key"
     if (cd /etc/ssh && step ssh needs-renewal --expires-in "$__expiry_threshhold" "${ssh_host_key}-cert.pub" 2>&1) | tee_verbose; then
-      (cd /etc/ssh && step ssh renew --force "${ssh_host_key}-cert.pub" "$ssh_host_key")
-      renewed=true
+      if (cd /etc/ssh && step ssh renew --force "${ssh_host_key}-cert.pub" "$ssh_host_key"); then
+        renewed=true
+      else
+        ret=$?
+      fi
     fi
   done
   if $renewed; then
@@ -108,6 +112,7 @@ declare -p "${prefix}__step_root_fp" "${prefix}__expiry_threshhold" \
   fi
 
   systemctl reload ssh
+  return $ret
 }
 
 pkidb_sshd "$@"
