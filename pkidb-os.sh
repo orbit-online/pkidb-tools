@@ -1,14 +1,10 @@
 #!/usr/bin/env bash
 
 pkidb_os() {
-  set -eo pipefail
-  shopt -s inherit_errexit
-  local pkgroot
-  pkgroot=$(upkg root "${BASH_SOURCE[0]}")
+  set -eo pipefail; shopt -s inherit_errexit
+  local pkgroot; pkgroot=$(upkg root "${BASH_SOURCE[0]}")
   PATH="$pkgroot/.upkg/.bin:$PATH"
-  # shellcheck source=.upkg/orbit-online/records.sh/records.sh
   source "$pkgroot/.upkg/orbit-online/records.sh/records.sh"
-  # shellcheck source=common.sh
   source "$pkgroot/common.sh"
 
   DOC="pkidb-os - Exclusively manage OS local CAs (/usr/local/share-ca-certificates)

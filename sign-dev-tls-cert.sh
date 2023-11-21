@@ -1,15 +1,10 @@
 #!/usr/bin/env bash
 
 main() {
-  set -eo pipefail
-  shopt -s inherit_errexit
-  local pkgroot
-  pkgroot=$(upkg root "${BASH_SOURCE[0]}")
-  # shellcheck source=.upkg/orbit-online/records.sh/records.sh
+  set -eo pipefail; shopt -s inherit_errexit
+  local pkgroot; pkgroot=$(upkg root "${BASH_SOURCE[0]}")
   source "$pkgroot/.upkg/orbit-online/records.sh/records.sh"
-  # shellcheck source=.upkg/orbit-online/collections.sh/collections.sh
   source "$pkgroot/.upkg/orbit-online/collections.sh/collections.sh"
-  # shellcheck source=common.sh
   source "$pkgroot/common.sh"
 
   DOC="sign-dev-tls-cert - Retrieve a TLS cert for .local domains

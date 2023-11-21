@@ -1,14 +1,10 @@
 #!/usr/bin/env bash
 
 pkidb_browser() {
-  set -eo pipefail
-  shopt -s inherit_errexit
-  local pkgroot
-  pkgroot=$(upkg root "${BASH_SOURCE[0]}")
+  set -eo pipefail; shopt -s inherit_errexit
+  local pkgroot; pkgroot=$(upkg root "${BASH_SOURCE[0]}")
   PATH="$pkgroot/.upkg/.bin:$PATH"
-  # shellcheck source=.upkg/orbit-online/records.sh/records.sh
   source "$pkgroot/.upkg/orbit-online/records.sh/records.sh"
-  # shellcheck source=common.sh
   source "$pkgroot/common.sh"
 
   DOC="pkidb-browser - Exclusively manage Browser CAs
