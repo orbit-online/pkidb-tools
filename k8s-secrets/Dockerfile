@@ -1,4 +1,6 @@
 FROM alpine:3.18.2
+ARG BUILT_BY=<unknown> BUILD_TOOL=cli
+LABEL cr.orbit.dev/build-src="https://github.com/orbit-online/pkidb-tools" cr.orbit.dev/built-by=$BUILT_BY cr.orbit.dev/build-tool=$BUILD_TOOL
 
 RUN apk add --update --no-cache bash jq git openssl curl perl-utils
 SHELL ["/bin/bash", "-ec"]

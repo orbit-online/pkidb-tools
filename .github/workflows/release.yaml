@@ -26,3 +26,6 @@ jobs:
         file: k8s-secrets/Dockerfile
         tags: secoya/pkidb-k8s-secrets:${{ steps.version.outputs.version }}
         push: true
+        build-args: |
+          "BUILD_TOOL=github"
+          "BUILT_BY=${{ github.actor }}"
