@@ -7,63 +7,64 @@ pkidb_crl() {
   source "$pkgroot/.upkg/orbit-online/records.sh/records.sh"
   source "$pkgroot/common.sh"
 
-  DOC="pkidb-crl - Retrieve the CRL for a CA certificate and verify it
+  DOC="pkidb-crl - Retrieve the CRL and verify it against the supplied CAs
 Usage:
-  pkidb-crl --dest=CRLPATH CAPATH
+  pkidb-crl --dest=CRLPATH CRLNAME CAPATH...
 "
 # docopt parser below, refresh this parser with `docopt.sh pkidb-crl.sh`
-# shellcheck disable=2016,1090,1091,2034
+# shellcheck disable=2016,1090,1091,2034,2154
 docopt() { source "$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh" '1.0.0' || {
 ret=$?; printf -- "exit %d\n" "$ret"; exit "$ret"; }; set -e
-trimmed_doc=${DOC:0:104}; usage=${DOC:64:40}; digest=c7a08; shorts=('')
+trimmed_doc=${DOC:0:119}; usage=${DOC:68:51}; digest=39b18; shorts=('')
 longs=(--dest); argcounts=(1); node_0(){ value __dest 0; }; node_1(){
-value CAPATH a; }; node_2(){ required 0 1; }; node_3(){ required 2; }
-cat <<<' docopt_exit() { [[ -n $1 ]] && printf "%s\n" "$1" >&2
-printf "%s\n" "${DOC:64:40}" >&2; exit 1; }'; unset var___dest var_CAPATH
-parse 3 "$@"; local prefix=${DOCOPT_PREFIX:-''}; unset "${prefix}__dest" \
+value CRLNAME a; }; node_2(){ value CAPATH a true; }; node_3(){ oneormore 2; }
+node_4(){ required 0 1 3; }; node_5(){ required 4; }; cat <<<' docopt_exit() {
+[[ -n $1 ]] && printf "%s\n" "$1" >&2; printf "%s\n" "${DOC:68:51}" >&2; exit 1
+}'; unset var___dest var_CRLNAME var_CAPATH; parse 5 "$@"
+local prefix=${DOCOPT_PREFIX:-''}; unset "${prefix}__dest" "${prefix}CRLNAME" \
 "${prefix}CAPATH"; eval "${prefix}"'__dest=${var___dest:-}'
-eval "${prefix}"'CAPATH=${var_CAPATH:-}'; local docopt_i=1
-[[ $BASH_VERSION =~ ^4.3 ]] && docopt_i=2; for ((;docopt_i>0;docopt_i--)); do
-declare -p "${prefix}__dest" "${prefix}CAPATH"; done; }
+eval "${prefix}"'CRLNAME=${var_CRLNAME:-}'
+if declare -p var_CAPATH >/dev/null 2>&1; then
+eval "${prefix}"'CAPATH=("${var_CAPATH[@]}")'; else eval "${prefix}"'CAPATH=()'
+fi; local docopt_i=1; [[ $BASH_VERSION =~ ^4.3 ]] && docopt_i=2
+for ((;docopt_i>0;docopt_i--)); do declare -p "${prefix}__dest" \
+"${prefix}CRLNAME" "${prefix}CAPATH"; done; }
 # docopt parser above, complete command for generating this parser is `docopt.sh --library='"$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh"' pkidb-crl.sh`
   eval "$(docopt "$@")"
   check_all_deps
 
   # shellcheck disable=2154
-  if [[ -e $__dest ]] && ! check_crl "$CAPATH" <"$__dest"; then
+  if [[ -e $__dest ]] && ! check_crl "${CAPATH[@]}" <"$__dest"; then
     info 'Current CRL invalid, deleting'
     rm -fv "$__dest" | tee_warning
   fi
 
-  local fingerprint url pem chg=0
-  fingerprint=$(generate_fingerprint <"$CAPATH")
-  url=$(get_crl_url "$fingerprint")
+  local url pem chg=0
+  url=$(get_crl_url "$CRLNAME")
   # shellcheck disable=2154
   has_changed "$url" "$__dest" || chg=$?
   if [[ $chg = 0 ]]; then
-    pem=$(download "$url") || fatal $? "Unable to fetch CRL for CA '%s'" "$fingerprint"
-    check_crl "$CAPATH" <<<"$pem"
+    pem=$(download "$url") || fatal $? "Unable to fetch CRL '%s'" "$CRLNAME"
+    check_crl "${CAPATH[@]}" <<<"$pem"
     verbose "Saving CRL to '%s'" "$__dest"
     printf -- "%s\n" "$pem" >"$__dest"
-    info 'The CRL for the CA '%s' has been updated' "$fingerprint"
+    info 'The CRL '%s' has been updated' "$CRLNAME"
     return 0
   elif [[ $chg = 3 ]]; then
-    info 'The CRL for the CA '%s' is up-to-date' "$fingerprint"
+    info 'The CRL '%s' is up-to-date' "$CRLNAME"
     return 0
   else
-    fatal $chg "Unable to fetch CRL for CA '%s'" "$fingerprint"
+    fatal $chg "Unable to fetch the CRL '%s'" "$CRLNAME"
   fi
 }
 
 check_crl() {
-  local ca_path=$1 out ret
-  debug 'Verifying the CRL using CA at "%s"' "$ca_path"
-  if out=$(openssl crl -verify -CAfile "$ca_path" -noout 2>&1); then
+  local out ret
+  debug 'Verifying the CRL'
+  if out=$(openssl crl -verify -CAfile <(cat "$@") -noout 2>&1); then
     verbose 'The CRL is valid'
   else
-    ret=$?
-    error 'Unable to verify CRL signature with CA at "%s". Error was: %s' "$ca_path" "$out"
-    return $ret
+    error $? 'Unable to verify CRL signature using the supplied CAs. Error was: %s' "$out"
   fi
 }
 

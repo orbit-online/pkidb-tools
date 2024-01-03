@@ -13,17 +13,18 @@ get_ca_url() {
 }
 
 get_crl_url() {
-  local fingerprint=$1
-  check_fp_format "$fingerprint"
-  printf "%s/crls/%s.pem" "$PKIDBURL" "$fingerprint"
+  local name=$1
+  printf "%s/crls/%s.pem" "$PKIDBURL" "$name"
 }
 
 get_krl_url() {
-  printf "%s/clients.krl" "$PKIDBURL"
+  local name=$1
+  printf "%s/krls/%s.krl" "$PKIDBURL" "$name"
 }
 
 get_krlsig_url() {
-  printf "%s/clients.krl.sig" "$PKIDBURL"
+  local name=$1
+  printf "%s/krls/%s.krl.sig" "$PKIDBURL" "$name"
 }
 
 generate_fingerprint() {

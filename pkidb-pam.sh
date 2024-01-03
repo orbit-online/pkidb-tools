@@ -9,23 +9,29 @@ pkidb_pam() {
 
   DOC="pkidb-pam - Exclusively manage PAM CAs and download their CRLs
 Usage:
-  pkidb-pam FINGERPRINT...
+  pkidb-pam [--crl NAME...] FINGERPRINT...
+
+Options:
+  --crl NAME  Name of a CRL to cache
 "
 # docopt parser below, refresh this parser with `docopt.sh pkidb-pam.sh`
 # shellcheck disable=2016,1090,1091,2034,2154
 docopt() { source "$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh" '1.0.0' || {
 ret=$?; printf -- "exit %d\n" "$ret"; exit "$ret"; }; set -e
-trimmed_doc=${DOC:0:96}; usage=${DOC:63:33}; digest=f36cc; shorts=(); longs=()
-argcounts=(); node_0(){ value FINGERPRINT a true; }; node_1(){ oneormore 0; }
-node_2(){ required 1; }; node_3(){ required 2; }; cat <<<' docopt_exit() {
-[[ -n $1 ]] && printf "%s\n" "$1" >&2; printf "%s\n" "${DOC:63:33}" >&2; exit 1
-}'; unset var_FINGERPRINT; parse 3 "$@"; local prefix=${DOCOPT_PREFIX:-''}
-unset "${prefix}FINGERPRINT"
+trimmed_doc=${DOC:0:159}; usage=${DOC:63:49}; digest=828f3; shorts=('')
+longs=(--crl); argcounts=(1); node_0(){ value __crl 0 true; }; node_1(){
+value FINGERPRINT a true; }; node_2(){ oneormore 0; }; node_3(){ optional 2; }
+node_4(){ oneormore 1; }; node_5(){ required 3 4; }; node_6(){ required 5; }
+cat <<<' docopt_exit() { [[ -n $1 ]] && printf "%s\n" "$1" >&2
+printf "%s\n" "${DOC:63:49}" >&2; exit 1; }'; unset var___crl var_FINGERPRINT
+parse 6 "$@"; local prefix=${DOCOPT_PREFIX:-''}; unset "${prefix}__crl" \
+"${prefix}FINGERPRINT"; if declare -p var___crl >/dev/null 2>&1; then
+eval "${prefix}"'__crl=("${var___crl[@]}")'; else eval "${prefix}"'__crl=()'; fi
 if declare -p var_FINGERPRINT >/dev/null 2>&1; then
 eval "${prefix}"'FINGERPRINT=("${var_FINGERPRINT[@]}")'; else
 eval "${prefix}"'FINGERPRINT=()'; fi; local docopt_i=1
 [[ $BASH_VERSION =~ ^4.3 ]] && docopt_i=2; for ((;docopt_i>0;docopt_i--)); do
-declare -p "${prefix}FINGERPRINT"; done; }
+declare -p "${prefix}__crl" "${prefix}FINGERPRINT"; done; }
 # docopt parser above, complete command for generating this parser is `docopt.sh --library='"$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh"' pkidb-pam.sh`
   eval "$(docopt "$@")"
   check_all_deps
@@ -57,18 +63,19 @@ declare -p "${prefix}FINGERPRINT"; done; }
   done < <(find "$certs_path" -type f -print0)
   # Update specified CAs
   for fingerprint in "${FINGERPRINT[@]}"; do
-    "$pkgroot/pkidb-ca.sh" --dest "${certs_path}/${fingerprint}.pem" "$fingerprint" || ret=$?
+    "$pkgroot/pkidb-ca.sh" --dest "$certs_path/$fingerprint.pem" "$fingerprint" || ret=$?
   done
   (cd "$certs_path" && pkcs11_make_hash_link) || ret=$?
 
-  local crl_path crl_link_path crls_path=/etc/pam_pkcs11/crls
-  # Remove unspecified CA CRLs
+  local crl_name crl_path crl_link_path crls_path=/etc/pam_pkcs11/crls
+  # Remove unspecified CRLs
   while read -r -d $'\0' crl_path; do
-    fingerprint=$(basename "$crl_path" .pem)
-    if [[ ${FINGERPRINT[*]} =~ (^|[[:space:]])$fingerprint($|[[:space:]]) ]]; then
-      verbose "Found specified CA CRL with fingerprint '%s'" "$fingerprint"
+    crl_name=$(basename "$crl_path" .pem)
+    # shellcheck disable=2154
+    if [[ ${__crl[*]} =~ (^|[[:space:]])$crl_name($|[[:space:]]) ]]; then
+      verbose "Found specified CRL named '%s'" "$crl_name"
     else
-      info "Found unspecified CA CRL with fingerprint '%s'. Removing." "$fingerprint"
+      info "Found unspecified CRL named '%s'. Removing." "$crl_name"
       while read -r -d $'\0' crl_link_path; do
         if [[ $crl_path = "$(realpath "$crl_link_path")" ]]; then
           rm -fv "$crl_link_path" | tee_warning
@@ -82,8 +89,8 @@ declare -p "${prefix}FINGERPRINT"; done; }
     fi
   done < <(find "$crls_path" -type f -print0)
   # Update CRLs for the specified CAs
-  for fingerprint in "${FINGERPRINT[@]}"; do
-    "$pkgroot/pkidb-crl.sh" --dest "${crls_path}/${fingerprint}.pem" "${certs_path}/${fingerprint}.pem" || ret=$?
+  for crl_name in "${__crl[@]}"; do
+    "$pkgroot/pkidb-crl.sh" --dest "$crls_path/$crl_name.pem" "$crl_name" "$certs_path/$fingerprint.pem" || ret=$?
   done
   (cd "$crls_path" && pkcs11_make_hash_link)
 
