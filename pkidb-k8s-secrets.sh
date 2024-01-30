@@ -2,8 +2,8 @@
 
 pkidb_k8s_secrets() {
   set -eo pipefail; shopt -s inherit_errexit
-  local pkgroot; pkgroot=$(upkg root "${BASH_SOURCE[0]}")
-  PATH="$pkgroot/.upkg/.bin:$PATH"
+  local pkgroot; pkgroot=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
+  PATH=$("$pkgroot/.upkg/.bin/path_prepend" "$pkgroot/.upkg/.bin")
   source "$pkgroot/.upkg/orbit-online/records.sh/records.sh"
   DOC="pkidb-k8s-secrets - Retrieve CAs via fingerprint and create k8s secrets from them
 Usage:
