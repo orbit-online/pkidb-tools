@@ -8,14 +8,11 @@ SHELL ["/bin/bash", "-ec"]
 RUN wget -q "https://dl.k8s.io/release/v1.27.4/bin/linux/amd64/kubectl" && \
   install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
-RUN wget -qO- https://raw.githubusercontent.com/orbit-online/upkg/v0.12.3/upkg.sh | (\
-  set +e; IFS='' read -r -d $'\0' src; set -e;\
-  printf '%s' "$src" | shasum -a 256 -c <(printf 'cd66df6dc96d4edf6dfb57c531da9c17653ea3482f5a270a03cd2211a3e3be00  -');\
-  bash -c "set - install -g orbit-online/upkg@v0.12.3; $src")
-
 WORKDIR /pkidb-tools
 COPY common.sh k8s-secrets/upkg.json /pkidb-tools
 COPY --chmod=0755 pkidb-k8s-secrets.sh pkidb-ca.sh /pkidb-tools
-RUN upkg install
+RUN bash -ec 'src=$(wget -qO- https://raw.githubusercontent.com/orbit-online/upkg/v0.14.0/upkg.sh); \
+shasum -a 256 -c <(printf "8312d0fa0e47ff22387086021c8b096b899ff9344ca8622d80cc0d1d579dccff  -") <<<"$src"; \
+set - install; eval "$src"'
 
 ENTRYPOINT ["/pkidb-tools/pkidb-k8s-secrets.sh"]
