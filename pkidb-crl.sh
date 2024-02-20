@@ -5,6 +5,7 @@ pkidb_crl() {
   local pkgroot; pkgroot=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
   PATH=$("$pkgroot/.upkg/.bin/path_prepend" "$pkgroot/.upkg/.bin")
   source "$pkgroot/.upkg/orbit-online/records.sh/records.sh"
+  source "$pkgroot/.upkg/orbit-online/collections.sh/collections.sh"
   source "$pkgroot/common.sh"
 
   DOC="pkidb-crl - Retrieve a CRL and verify it against CAs
