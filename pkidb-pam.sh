@@ -67,14 +67,16 @@ declare -p "${prefix}__crl" "${prefix}FINGERPRINT"; done; }
   done
   (cd "$certs_path" && pkcs11_make_hash_link) || ret=$?
 
+  local crl_name
   local crl_path crl_link_path crls_path=/etc/pam_pkcs11/crls
   # Remove unspecified CA CRLs
   while read -r -d $'\0' crl_path; do
-    fingerprint=$(basename "$crl_path" .pem)
-    if [[ ${FINGERPRINT[*]} =~ (^|[[:space:]])$fingerprint($|[[:space:]]) ]]; then
-      verbose "Found specified CA CRL with fingerprint '%s'" "$fingerprint"
+    name=$(basename "$crl_path" .pem)
+    # shellcheck disable=2154
+    if [[ ${__crl[*]} =~ (^|[[:space:]])$name($|[[:space:]]) ]]; then
+      verbose "Found specified CA CRL '%s'" "$name"
     else
-      info "Found unspecified CA CRL with fingerprint '%s'. Removing." "$fingerprint"
+      info "Found unspecified CA CRL '%s'. Removing." "$name"
       while read -r -d $'\0' crl_link_path; do
         if [[ $crl_path = "$(realpath "$crl_link_path")" ]]; then
           rm -fv "$crl_link_path" | tee_warning
@@ -82,15 +84,13 @@ declare -p "${prefix}__crl" "${prefix}FINGERPRINT"; done; }
         fi
       done < <(find "$crls_path" -type l -print0)
       if [[ -z $crl_link_path ]]; then
-        warning "Unable to find and remove subject hash link for crl '%s'" "$fingerprint"
+        warning "Unable to find and remove subject hash link for crl '%s'" "$name"
       fi
       rm -fv "$crl_path" | tee_warning
     fi
   done < <(find "$crls_path" -type f -print0)
 
   # Update CRLs for the specified CAs
-  local crl_name
-  # shellcheck disable=2154
   for crl_name in "${__crl[@]}"; do
     "$pkgroot/pkidb-crl.sh" --dest "${crls_path}/${crl_name}.pem" "$crl_name" "${capaths[@]}" || ret=$?
   done
