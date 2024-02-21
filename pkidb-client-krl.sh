@@ -5,6 +5,7 @@ pkidb_client_krl() {
   local pkgroot; pkgroot=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
   PATH=$("$pkgroot/.upkg/.bin/path_prepend" "$pkgroot/.upkg/.bin")
   source "$pkgroot/.upkg/orbit-online/records.sh/records.sh"
+  source "$pkgroot/.upkg/orbit-online/collections.sh/collections.sh"
   source "$pkgroot/common.sh"
 
   DOC="pkidb-client-krl - Retrieve a CMS signed KRL and verify it against CAs
@@ -40,7 +41,7 @@ for ((;docopt_i>0;docopt_i--)); do declare -p "${prefix}__dest" \
   # shellcheck disable=2154
   local pem pem_dest=${__dest}.pem
   # shellcheck disable=2153
-  if [[ -e $__dest ]] && ! check_krl "${CAPATH[@]}" <"$pem_dest"; then
+  if [[ -e $__dest ]] && ! check_krlcms "${CAFILE[@]}" <"$pem_dest"; then
     info 'Current KRL invalid, deleting'
     rm -fv "$__dest" | tee_warning
   fi
@@ -54,6 +55,8 @@ for ((;docopt_i>0;docopt_i--)); do declare -p "${prefix}__dest" \
   if [[ $chg = 0 ]]; then
     pem=$(download "$url") || fatal $? "Unable to fetch the KRL '%s'" "$KRLNAME"
     krlb64=$(check_krlcms "${CAFILE[@]}" <<<"$pem")
+    verbose "Saving KRLCMS to '%s'" "$pem_dest"
+    printf "%s" "$pem" >"$pem_dest"
     verbose "Saving KRL to '%s'" "$__dest"
     base64 -d <<<"$krlb64" >"$__dest"
     info "The KRL '%s' has been updated" "$KRLNAME"
@@ -68,12 +71,12 @@ for ((;docopt_i>0;docopt_i--)); do declare -p "${prefix}__dest" \
 
 check_krlcms() {
   local capaths=("$@") out ret
-  debug 'Verifying the KRL using CAs at %s' "$(join_by , "${capaths[@]}")"
-  if out=$(openssl cms -verify -inform PEM -CAfile <(cat ../../pkidb/ykpiv/cas/*.pem) -certfile <(cat "${capaths[@]}") -binary | base64); then
+  debug "Verifying the KRL using CAs at '%s'" "$(join_by , "${capaths[@]}")"
+  if out=$(openssl cms -verify -inform PEM -CAfile <(cat "${capaths[@]}") -certfile <(cat "${capaths[@]}") -binary | base64); then
     verbose 'The KRL is valid'
   else
     ret=$?
-    error 'Unable to verify the KRL CMS signature with CAs at %s. Error was: %s' "$(join_by , "${capaths[@]}")" "$out"
+    error "Unable to verify the KRL CMS signature with CAs at '%s'. Error was: %s" "$(join_by , "${capaths[@]}")" "$out"
     return $ret
   fi
 }
