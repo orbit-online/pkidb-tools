@@ -2,17 +2,24 @@ name: Release
 
 on:
   push:
-    branches: [ '*' ]
-    tags: [ 'v*' ]
+    tags: ['v*']
 
 jobs:
-  create-release:
+  test:
+    uses: ./.github/workflows/test.yaml
+    secrets: inherit
+  release:
+    needs: [test]
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
     - id: version
       uses: orbit-online/image-version@v0.9.1
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.ref }}
     - name: Set up buildx
       uses: docker/setup-buildx-action@v2
     - name: Login to docker hub
@@ -21,11 +28,15 @@ jobs:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_TOKEN_RW }}
     - name: Build & push
-      uses: docker/build-push-action@v4
+      uses: docker/build-push-action@v5
       with:
+        context: "."
         file: k8s-secrets/Dockerfile
         tags: secoya/pkidb-k8s-secrets:${{ steps.version.outputs.version }}
         push: true
         build-args: |
           "BUILD_TOOL=github"
           "BUILT_BY=${{ github.actor }}"
+    - uses: orbit-online/upkg-release@v1
+      with:
+        paths: bin common.sh LICENSE README.md

@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC1091
+source "${pkgroot:?}/.upkg/records.sh/records.sh"
+# shellcheck disable=SC1091
+source "$pkgroot/.upkg/collections.sh/collections.sh"
+
 [[ -n "$PKIDBURL" ]] || fatal "\$PKIDBURL is not set, unable to continue."
 
 check_all_deps() {

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
+# shellcheck source-path=..
 
 pkidb_sshd() {
   set -eo pipefail; shopt -s inherit_errexit
-  local pkgroot; pkgroot=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
+  local pkgroot; pkgroot=$(realpath "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/..")
   PATH=$("$pkgroot/.upkg/.bin/path_prepend" "$pkgroot/.upkg/.bin")
-  source "$pkgroot/.upkg/orbit-online/records.sh/records.sh"
   source "$pkgroot/common.sh"
 
   DOC="pkidb-sshd - Manage client CAs for openssh-server and renew its hostkey
@@ -19,36 +19,30 @@ Options:
   -k --key-algo ALGO         Host cert key algorithms to consider for renewal
                              [default: ecdsa ed25519 rsa]
 "
-# docopt parser below, refresh this parser with `docopt.sh pkidb-sshd.sh`
-# shellcheck disable=2016,1090,1091,2034,2154
-docopt() { source "$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh" '1.0.0' || {
-ret=$?; printf -- "exit %d\n" "$ret"; exit "$ret"; }; set -e
-trimmed_doc=${DOC:0:544}; usage=${DOC:72:65}; digest=a830b; shorts=(-e -f -k)
-longs=(--expiry-threshhold --step-root-fp --key-algo); argcounts=(1 1 1)
-node_0(){ value __expiry_threshhold 0; }; node_1(){ value __step_root_fp 1; }
-node_2(){ value __key_algo 2 true; }; node_3(){ value KRLNAME a; }; node_4(){
-value FINGERPRINT a true; }; node_5(){ optional 0 1; }; node_6(){ optional 5; }
-node_7(){ oneormore 2; }; node_8(){ optional 7; }; node_9(){ oneormore 4; }
-node_10(){ required 6 8 3 9; }; node_11(){ required 10; }
-cat <<<' docopt_exit() { [[ -n $1 ]] && printf "%s\n" "$1" >&2
-printf "%s\n" "${DOC:72:65}" >&2; exit 1; }'; unset var___expiry_threshhold \
-var___step_root_fp var___key_algo var_KRLNAME var_FINGERPRINT; parse 11 "$@"
-local prefix=${DOCOPT_PREFIX:-''}; unset "${prefix}__expiry_threshhold" \
-"${prefix}__step_root_fp" "${prefix}__key_algo" "${prefix}KRLNAME" \
-"${prefix}FINGERPRINT"
-eval "${prefix}"'__expiry_threshhold=${var___expiry_threshhold:-50%}'
-eval "${prefix}"'__step_root_fp=${var___step_root_fp:-'"'"'$STEP_ROOT_FP'"'"'}'
-if declare -p var___key_algo >/dev/null 2>&1; then
-eval "${prefix}"'__key_algo=("${var___key_algo[@]}")'; else
-eval "${prefix}"'__key_algo=(ecdsa ed25519 rsa)'; fi
-eval "${prefix}"'KRLNAME=${var_KRLNAME:-}'
-if declare -p var_FINGERPRINT >/dev/null 2>&1; then
-eval "${prefix}"'FINGERPRINT=("${var_FINGERPRINT[@]}")'; else
-eval "${prefix}"'FINGERPRINT=()'; fi; local docopt_i=1
-[[ $BASH_VERSION =~ ^4.3 ]] && docopt_i=2; for ((;docopt_i>0;docopt_i--)); do
-declare -p "${prefix}__expiry_threshhold" "${prefix}__step_root_fp" \
-"${prefix}__key_algo" "${prefix}KRLNAME" "${prefix}FINGERPRINT"; done; }
-# docopt parser above, complete command for generating this parser is `docopt.sh --library='"$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh"' pkidb-sshd.sh`
+# docopt parser below, refresh this parser with `docopt.sh pkidb-sshd`
+# shellcheck disable=2016,2086,2317,1090,1091,2034,2154
+docopt() { source "$pkgroot/.upkg/docopt-lib.sh/docopt-lib.sh" '2.0.0' || {
+ret=$?;printf -- "exit %d\n" "$ret";exit "$ret";};set -e
+trimmed_doc=${DOC:0:544};usage=${DOC:72:65};digest=a830b;options=('-f --step-r'\
+'oot-fp 1' '-e --expiry-threshhold 1' '-k --key-algo 1');node_0(){ value \
+__step_root_fp 0;};node_1(){ value __expiry_threshhold 1;};node_2(){ value \
+__key_algo 2 true;};node_3(){ value KRLNAME a;};node_4(){ value FINGERPRINT a \
+true;};node_5(){ optional 0 1;};node_6(){ optional 7;};node_7(){ repeatable 2;}
+node_8(){ repeatable 4;};node_9(){ sequence 5 6 3 8;};cat <<<' docopt_exit() {
+[[ -n $1 ]] && printf "%s\n" "$1" >&2;printf "%s\n" "${DOC:72:65}" >&2;exit 1;}'
+local varnames=(__step_root_fp __expiry_threshhold __key_algo KRLNAME \
+FINGERPRINT) varname;for varname in "${varnames[@]}"; do unset "var_$varname"
+done;parse 9 "$@";local p=${DOCOPT_PREFIX:-''};for varname in \
+"${varnames[@]}"; do unset "$p$varname";done;if declare -p var___key_algo \
+>/dev/null 2>&1; then eval $p'__key_algo=("${var___key_algo[@]}")';else eval \
+$p'__key_algo=(ecdsa ed25519 rsa)';fi;if declare -p var_FINGERPRINT >/dev/null \
+2>&1; then eval $p'FINGERPRINT=("${var_FINGERPRINT[@]}")';else eval $p'FINGERP'\
+'RINT=()';fi;eval $p'__step_root_fp=${var___step_root_fp:-'"'"'$STEP_ROOT_FP'"'\
+"'};'$p'__expiry_threshhold=${var___expiry_threshhold:-50%};'$p'KRLNAME=${var_'\
+'KRLNAME:-};';local docopt_i=1;[[ $BASH_VERSION =~ ^4.3 ]] && docopt_i=2;for \
+((;docopt_i>0;docopt_i--)); do for varname in "${varnames[@]}"; do declare -p \
+"$p$varname";done;done;}
+# docopt parser above, complete command for generating this parser is `docopt.sh --library='"$pkgroot/.upkg/docopt-lib.sh/docopt-lib.sh"' pkidb-sshd`
   eval "$(docopt "$@")"
   check_all_deps
   [[ $EUID = 0 ]] || fatal "You must be root"
@@ -72,14 +66,14 @@ declare -p "${prefix}__expiry_threshhold" "${prefix}__step_root_fp" \
   done < <(find "$certs_path" -type f -print0)
   # Update specified CAs
   for fingerprint in "${FINGERPRINT[@]}"; do
-    "$pkgroot/pkidb-ca.sh" --dest "${certs_path}/${fingerprint}.pem" "$fingerprint" || { ret=$?; continue; }
+    "$pkgroot/bin/pkidb-ca" --dest "${certs_path}/${fingerprint}.pem" "$fingerprint" || { ret=$?; continue; }
     capaths+=("${certs_path}/${fingerprint}.pem")
     ssh_pubkey=$(ssh-keygen -i -m PKCS8 -f <(get_pubkey <"${certs_path}/${fingerprint}.pem")) || { ret=$?; continue; }
     key_lines+=("$ssh_pubkey")
   done
   umask 133
   printf "%s\n" "${key_lines[@]}" >"$ca_keys_path"
-  "$pkgroot/pkidb-client-krl.sh" --dest "$krl_path" "$KRLNAME" "${capaths[@]}" || ret=$?
+  "$pkgroot/bin/pkidb-client-krl" --dest "$krl_path" "$KRLNAME" "${capaths[@]}" || ret=$?
   info "The client CA certs and the krl have been updated"
 
   # shellcheck disable=2154
@@ -89,7 +83,7 @@ declare -p "${prefix}__expiry_threshhold" "${prefix}__step_root_fp" \
     fatal "\$STEP_ROOT_FP is not defined"
   fi
   export STEP_URL
-  STEP_URL=$(LOGLEVEL=warning "$pkgroot/pkidb-ca.sh" "$STEP_ROOT_FP" | get_subject_field "2.5.4.87" url)
+  STEP_URL=$(LOGLEVEL=warning "$pkgroot/bin/pkidb-ca" "$STEP_ROOT_FP" | get_subject_field "2.5.4.87" url)
 
   local algo ssh_host_key renewed=false
   # shellcheck disable=2154

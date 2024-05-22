@@ -9,10 +9,11 @@ RUN wget -q "https://dl.k8s.io/release/v1.27.4/bin/linux/amd64/kubectl" && \
   install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
 WORKDIR /pkidb-tools
-COPY common.sh k8s-secrets/upkg.json /pkidb-tools
-COPY --chmod=0755 pkidb-k8s-secrets.sh pkidb-ca.sh /pkidb-tools
-RUN bash -ec 'src=$(wget -qO- https://raw.githubusercontent.com/orbit-online/upkg/v0.14.0/upkg.sh); \
-shasum -a 256 -c <(printf "8312d0fa0e47ff22387086021c8b096b899ff9344ca8622d80cc0d1d579dccff  -") <<<"$src"; \
-set - install; eval "$src"'
+COPY common.sh k8s-secrets/upkg.json /pkidb-tools/
+COPY --chmod=0755 bin/pkidb-k8s-secrets bin/pkidb-ca /pkidb-tools/
+RUN bash -ec 'u=https://github.com/orbit-online/upkg/releases/download/v0.24.4/upkg-install.tar.gz;\
+t=$(mktemp); trap "rm \"$t\"" EXIT;wget -qO"$t" "$u" || curl -fsLo"$t" "$u";\
+shasum -a 256 -c <(echo "4398bebb91fbf9103b44ffb415e66bc3c7c99522cae27535b2050054869bfbb7  $t");\
+tar xzC /usr/local -f "$t"'
 
-ENTRYPOINT ["/pkidb-tools/pkidb-k8s-secrets.sh"]
+ENTRYPOINT ["/pkidb-tools/pkidb-k8s-secrets"]

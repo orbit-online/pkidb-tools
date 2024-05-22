@@ -1,32 +1,31 @@
 #!/usr/bin/env bash
+# shellcheck source-path=..
 
 pkidb_browser() {
   set -eo pipefail; shopt -s inherit_errexit
-  local pkgroot; pkgroot=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
+  local pkgroot; pkgroot=$(realpath "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/..")
   PATH=$("$pkgroot/.upkg/.bin/path_prepend" "$pkgroot/.upkg/.bin")
-  source "$pkgroot/.upkg/orbit-online/records.sh/records.sh"
   source "$pkgroot/common.sh"
 
   DOC="pkidb-browser - Exclusively manage Browser CAs
 Usage:
   pkidb-browser FINGERPRINT...
 "
-# docopt parser below, refresh this parser with `docopt.sh pkidb-browser.sh`
-# shellcheck disable=2016,1090,1091,2034,2154
-docopt() { source "$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh" '1.0.0' || {
-ret=$?; printf -- "exit %d\n" "$ret"; exit "$ret"; }; set -e
-trimmed_doc=${DOC:0:84}; usage=${DOC:47:37}; digest=a0056; shorts=(); longs=()
-argcounts=(); node_0(){ value FINGERPRINT a true; }; node_1(){ oneormore 0; }
-node_2(){ required 1; }; node_3(){ required 2; }; cat <<<' docopt_exit() {
-[[ -n $1 ]] && printf "%s\n" "$1" >&2; printf "%s\n" "${DOC:47:37}" >&2; exit 1
-}'; unset var_FINGERPRINT; parse 3 "$@"; local prefix=${DOCOPT_PREFIX:-''}
-unset "${prefix}FINGERPRINT"
-if declare -p var_FINGERPRINT >/dev/null 2>&1; then
-eval "${prefix}"'FINGERPRINT=("${var_FINGERPRINT[@]}")'; else
-eval "${prefix}"'FINGERPRINT=()'; fi; local docopt_i=1
-[[ $BASH_VERSION =~ ^4.3 ]] && docopt_i=2; for ((;docopt_i>0;docopt_i--)); do
-declare -p "${prefix}FINGERPRINT"; done; }
-# docopt parser above, complete command for generating this parser is `docopt.sh --library='"$pkgroot/.upkg/andsens/docopt.sh/docopt-lib.sh"' pkidb-browser.sh`
+# docopt parser below, refresh this parser with `docopt.sh pkidb-browser`
+# shellcheck disable=2016,2086,2317,1090,1091,2034,2154
+docopt() { source "$pkgroot/.upkg/docopt-lib.sh/docopt-lib.sh" '2.0.0' || {
+ret=$?;printf -- "exit %d\n" "$ret";exit "$ret";};set -e;trimmed_doc=${DOC:0:84}
+usage=${DOC:47:37};digest=a0056;options=();node_0(){ value FINGERPRINT a true;}
+node_1(){ repeatable 0;};cat <<<' docopt_exit() { [[ -n $1 ]] && printf "%s\n" \
+"$1" >&2;printf "%s\n" "${DOC:47:37}" >&2;exit 1;}';local \
+varnames=(FINGERPRINT) varname;for varname in "${varnames[@]}"; do unset \
+"var_$varname";done;parse 1 "$@";local p=${DOCOPT_PREFIX:-''};for varname in \
+"${varnames[@]}"; do unset "$p$varname";done;if declare -p var_FINGERPRINT \
+>/dev/null 2>&1; then eval $p'FINGERPRINT=("${var_FINGERPRINT[@]}")';else eval \
+$p'FINGERPRINT=()';fi;eval ;local docopt_i=1;[[ $BASH_VERSION =~ ^4.3 ]] && \
+docopt_i=2;for ((;docopt_i>0;docopt_i--)); do for varname in "${varnames[@]}"; \
+do declare -p "$p$varname";done;done;}
+# docopt parser above, complete command for generating this parser is `docopt.sh --library='"$pkgroot/.upkg/docopt-lib.sh/docopt-lib.sh"' pkidb-browser`
   eval "$(docopt "$@")"
   check_all_deps
 
@@ -76,7 +75,7 @@ declare -p "${prefix}FINGERPRINT"; done; }
       tmp_ca_path=$(mktemp)
       # shellcheck disable=2064
       trap "rm '$tmp_ca_path'" EXIT
-      "$pkgroot/pkidb-ca.sh" "$fingerprint" > "$tmp_ca_path"
+      "$pkgroot/bin/pkidb-ca" "$fingerprint" > "$tmp_ca_path"
       certutil -d "$nssdbpath" -A -n "$fingerprint" -t "$expected_trust" -i "$tmp_ca_path" 2> >(LOGPROGRAM=certutil tee_verbose)
       changed=true
       rm "$tmp_ca_path"
