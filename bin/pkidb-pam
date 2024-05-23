@@ -47,14 +47,14 @@ for ((;docopt_i>0;docopt_i--)); do for varname in "${varnames[@]}"; do declare \
       info "Found unspecified or misnamed CA with fingerprint '%s'. Removing." "$fingerprint"
       while read -r -d $'\0' cert_link_path; do
         if [[ $cert_path = "$(realpath "$cert_link_path")" ]]; then
-          rm -fv "$cert_link_path" | tee_warning
+          rm -fv "$cert_link_path" | pipe_warning
           break;
         fi
       done < <(find "$certs_path" -type l -print0)
       if [[ -z $cert_link_path ]]; then
         warning "Unable to find and remove subject hash link for certificate '%s'" "$fingerprint"
       fi
-      rm -fv "$cert_path" | tee_warning
+      rm -fv "$cert_path" | pipe_warning
     fi
   done < <(find "$certs_path" -type f -print0)
   # Update specified CAs
@@ -77,14 +77,14 @@ for ((;docopt_i>0;docopt_i--)); do for varname in "${varnames[@]}"; do declare \
       info "Found unspecified CA CRL '%s'. Removing." "$name"
       while read -r -d $'\0' crl_link_path; do
         if [[ $crl_path = "$(realpath "$crl_link_path")" ]]; then
-          rm -fv "$crl_link_path" | tee_warning
+          rm -fv "$crl_link_path" | pipe_warning
           break;
         fi
       done < <(find "$crls_path" -type l -print0)
       if [[ -z $crl_link_path ]]; then
         warning "Unable to find and remove subject hash link for crl '%s'" "$name"
       fi
-      rm -fv "$crl_path" | tee_warning
+      rm -fv "$crl_path" | pipe_warning
     fi
   done < <(find "$crls_path" -type f -print0)
 

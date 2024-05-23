@@ -54,20 +54,20 @@ do declare -p "$p$varname";done;done;}
       verbose "Found specified CA with fingerprint '%s'" "$fingerprint"
       if [[ $nickname != "$fingerprint" ]]; then
         info "Renaming CA '%s' to correct nickname" "$fingerprint"
-        certutil -d "$nssdbpath" --rename -n "$nickname" --new-n "$fingerprint" -t "$expected_trust" 2> >(LOGPROGRAM=certutil tee_verbose)
+        certutil -d "$nssdbpath" --rename -n "$nickname" --new-n "$fingerprint" -t "$expected_trust" 2> >(LOGPROGRAM=certutil pipe_verbose)
         nickname=$fingerprint
         changed=true
       fi
       if [[ $trust != "$expected_trust" ]]; then
         info "Adjusting trust settings on CA '%s' to '%s'" "$fingerprint" "$expected_trust"
-        certutil -d "$nssdbpath" -M -n "$nickname" -t "$expected_trust" 2> >(LOGPROGRAM=certutil tee_verbose)
+        certutil -d "$nssdbpath" -M -n "$nickname" -t "$expected_trust" 2> >(LOGPROGRAM=certutil pipe_verbose)
       fi
       existing_fingerprints+=("$fingerprint")
     else
       info "Found unspecified CA with fingerprint '%s'. Removing." "$fingerprint"
-      certutil -d "$nssdbpath" -D -n "$nickname" 2> >(LOGPROGRAM=certutil tee_verbose)
+      certutil -d "$nssdbpath" -D -n "$nickname" 2> >(LOGPROGRAM=certutil pipe_verbose)
     fi
-  done < <(certutil -d "$nssdbpath" -L 2> >(LOGPROGRAM=certutil tee_verbose))
+  done < <(certutil -d "$nssdbpath" -L 2> >(LOGPROGRAM=certutil pipe_verbose))
   # Update specified CAs
   for fingerprint in "${FINGERPRINT[@]}"; do
     if [[ ! ${existing_fingerprints[*]} =~ (^|[[:space:]])$fingerprint($|[[:space:]]) ]]; then
@@ -76,7 +76,7 @@ do declare -p "$p$varname";done;done;}
       # shellcheck disable=2064
       trap "rm '$tmp_ca_path'" EXIT
       "$pkgroot/bin/pkidb-ca" "$fingerprint" > "$tmp_ca_path"
-      certutil -d "$nssdbpath" -A -n "$fingerprint" -t "$expected_trust" -i "$tmp_ca_path" 2> >(LOGPROGRAM=certutil tee_verbose)
+      certutil -d "$nssdbpath" -A -n "$fingerprint" -t "$expected_trust" -i "$tmp_ca_path" 2> >(LOGPROGRAM=certutil pipe_verbose)
       changed=true
       rm "$tmp_ca_path"
       trap '' EXIT
@@ -92,7 +92,7 @@ do declare -p "$p$varname";done;done;}
 
 get_fingerprint() {
   local nssdbpath=$1 nickname=$2 fingerprint
-  fingerprint=$(certutil -d "$nssdbpath" -L -n "$nickname" 2> >(LOGPROGRAM=certutil tee_verbose) | grep -A1 'Fingerprint (SHA-256):' | tail -n+2 | sed 's/ *\|://g')
+  fingerprint=$(certutil -d "$nssdbpath" -L -n "$nickname" 2> >(LOGPROGRAM=certutil pipe_verbose) | grep -A1 'Fingerprint (SHA-256):' | tail -n+2 | sed 's/ *\|://g')
   if [[ -z $fingerprint ]]; then
     error "Unable to retrieve fingerprint from certutil DB for nickname '%s'" "$nickname"
     return 1

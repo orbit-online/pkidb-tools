@@ -37,7 +37,7 @@ varname in "${varnames[@]}"; do declare -p "$p$varname";done;done;}
       return 0
     else
       info "CA '%s' invalid, deleting" "$FINGERPRINT"
-      rm -fv "$__dest" | tee_warning
+      rm -fv "$__dest" | pipe_warning
       return 1
     fi
   else
@@ -74,7 +74,7 @@ check_fingerprint() {
 }
 
 check_expiration() {
-  openssl x509 -checkend 0 2>&1 | LOGPROGRAM=openssl tee_verbose
+  openssl x509 -checkend 0 2>&1 | LOGPROGRAM=openssl pipe_verbose
 }
 
 pkidb_ca "$@"

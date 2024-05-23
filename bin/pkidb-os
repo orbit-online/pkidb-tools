@@ -42,14 +42,14 @@ do declare -p "$p$varname";done;done;}
       verbose "Found specified CA with fingerprint '%s'" "$fingerprint"
     else
       info "Found unspecified or misnamed CA with fingerprint '%s'. Removing." "$fingerprint"
-      rm -fv "$cert_path" | tee_warning
+      rm -fv "$cert_path" | pipe_warning
     fi
   done < <(find "$certs_path" -type f -print0)
   # Update specified CAs
   for fingerprint in "${FINGERPRINT[@]}"; do
     "$pkgroot/bin/pkidb-ca" --dest "${certs_path}/${fingerprint}.crt" "$fingerprint" || ret=$?
   done
-  /usr/sbin/update-ca-certificates 2>&1 | LOGPROGRAM=update-ca-certificates tee_verbose
+  /usr/sbin/update-ca-certificates 2>&1 | LOGPROGRAM=update-ca-certificates pipe_verbose
 
   info "The OS CA certificates have been updated"
   return $ret

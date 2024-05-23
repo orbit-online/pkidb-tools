@@ -29,7 +29,7 @@ get_krl_url() {
 
 generate_fingerprint() {
   debug "Generating SHA-256 fingerprint for a certificate"
-  openssl x509 -noout -fingerprint -sha256 2> >(LOGPROGRAM=openssl tee_verbose) | cut -d= -f2 | sed s/://g
+  openssl x509 -noout -fingerprint -sha256 2> >(LOGPROGRAM=openssl pipe_verbose) | cut -d= -f2 | sed s/://g
 }
 
 has_changed() {
@@ -65,7 +65,7 @@ check_fp_format() {
 }
 
 get_pubkey() {
-  openssl x509 -pubkey -noout 2> >(LOGPROGRAM=openssl tee_verbose)
+  openssl x509 -pubkey -noout 2> >(LOGPROGRAM=openssl pipe_verbose)
 }
 
 get_subject_field() {

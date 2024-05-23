@@ -61,7 +61,7 @@ $p'__key_algo=(ecdsa ed25519 rsa)';fi;if declare -p var_FINGERPRINT >/dev/null \
       verbose "Found specified CA with fingerprint '%s'" "$fingerprint"
     else
       info "Found unspecified or misnamed CA with fingerprint '%s'. Removing." "$fingerprint"
-      rm -fv "$cert_path" | tee_warning
+      rm -fv "$cert_path" | pipe_warning
     fi
   done < <(find "$certs_path" -type f -print0)
   # Update specified CAs
@@ -89,7 +89,7 @@ $p'__key_algo=(ecdsa ed25519 rsa)';fi;if declare -p var_FINGERPRINT >/dev/null \
   # shellcheck disable=2154
   for algo in "${__key_algo[@]}"; do
     ssh_host_key="ssh_host_${algo}_key"
-    if (cd /etc/ssh && step ssh needs-renewal --expires-in "$__expiry_threshhold" "${ssh_host_key}-cert.pub" 2>&1) | tee_verbose; then
+    if (cd /etc/ssh && step ssh needs-renewal --expires-in "$__expiry_threshhold" "${ssh_host_key}-cert.pub" 2>&1) | pipe_verbose; then
       if (cd /etc/ssh && step ssh renew --force "${ssh_host_key}-cert.pub" "$ssh_host_key"); then
         renewed=true
       else

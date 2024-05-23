@@ -40,7 +40,7 @@ local p=${DOCOPT_PREFIX:-''};for varname in "${varnames[@]}"; do unset \
   # shellcheck disable=2153
   if [[ -e $__dest ]] && ! check_krlcms "${CAFILE[@]}" <"$pem_dest"; then
     info 'Current KRL invalid, deleting'
-    rm -fv "$__dest" | tee_warning
+    rm -fv "$__dest" | pipe_warning
   fi
 
   local url chg=0

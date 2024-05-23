@@ -34,7 +34,7 @@ local p=${DOCOPT_PREFIX:-''};for varname in "${varnames[@]}"; do unset \
   # shellcheck disable=2153,2154
   if [[ -e $__dest ]] && ! check_crl "${CAFILE[@]}" <"$__dest"; then
     info 'Current CRL invalid, deleting'
-    rm -fv "$__dest" | tee_warning
+    rm -fv "$__dest" | pipe_warning
   fi
 
   local url pem chg=0
