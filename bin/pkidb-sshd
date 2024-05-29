@@ -21,25 +21,26 @@ Options:
 "
 # docopt parser below, refresh this parser with `docopt.sh pkidb-sshd`
 # shellcheck disable=2016,2086,2317,1090,1091,2034,2154
-docopt() { source "$pkgroot/.upkg/docopt-lib.sh/docopt-lib.sh" '2.0.0' || {
-ret=$?;printf -- "exit %d\n" "$ret";exit "$ret";};set -e
-trimmed_doc=${DOC:0:544};usage=${DOC:72:65};digest=a830b;options=('-f --step-r'\
-'oot-fp 1' '-e --expiry-threshhold 1' '-k --key-algo 1');node_0(){ value \
-__step_root_fp 0;};node_1(){ value __expiry_threshhold 1;};node_2(){ value \
-__key_algo 2 true;};node_3(){ value KRLNAME a;};node_4(){ value FINGERPRINT a \
-true;};node_5(){ optional 0 1;};node_6(){ optional 7;};node_7(){ repeatable 2;}
-node_8(){ repeatable 4;};node_9(){ sequence 5 6 3 8;};cat <<<' docopt_exit() {
-[[ -n $1 ]] && printf "%s\n" "$1" >&2;printf "%s\n" "${DOC:72:65}" >&2;exit 1;}'
-local varnames=(__step_root_fp __expiry_threshhold __key_algo KRLNAME \
-FINGERPRINT) varname;for varname in "${varnames[@]}"; do unset "var_$varname"
-done;parse 9 "$@";local p=${DOCOPT_PREFIX:-''};for varname in \
-"${varnames[@]}"; do unset "$p$varname";done;if declare -p var___key_algo \
->/dev/null 2>&1; then eval $p'__key_algo=("${var___key_algo[@]}")';else eval \
-$p'__key_algo=(ecdsa ed25519 rsa)';fi;if declare -p var_FINGERPRINT >/dev/null \
-2>&1; then eval $p'FINGERPRINT=("${var_FINGERPRINT[@]}")';else eval $p'FINGERP'\
-'RINT=()';fi;eval $p'__step_root_fp=${var___step_root_fp:-'"'"'$STEP_ROOT_FP'"'\
-"'};'$p'__expiry_threshhold=${var___expiry_threshhold:-50%};'$p'KRLNAME=${var_'\
-'KRLNAME:-};';local docopt_i=1;[[ $BASH_VERSION =~ ^4.3 ]] && docopt_i=2;for \
+docopt() { local v='2.0.1'; source \
+"$pkgroot/.upkg/docopt-lib.sh/docopt-lib.sh" "$v" || { ret=$?;printf -- "exit \
+%d\n" "$ret";exit "$ret";};set -e;trimmed_doc=${DOC:0:544};usage=${DOC:72:65}
+digest=a830b;options=('-f --step-root-fp 1' '-e --expiry-threshhold 1' '-k --k'\
+'ey-algo 1');node_0(){ value __step_root_fp 0;};node_1(){ value \
+__expiry_threshhold 1;};node_2(){ value __key_algo 2 true;};node_3(){ value \
+KRLNAME a;};node_4(){ value FINGERPRINT a true;};node_5(){ optional 0 1;}
+node_6(){ optional 7;};node_7(){ repeatable 2;};node_8(){ repeatable 4;}
+node_9(){ sequence 5 6 3 8;};cat <<<' docopt_exit() { [[ -n $1 ]] && printf \
+"%s\n" "$1" >&2;printf "%s\n" "${DOC:72:65}" >&2;exit 1;}';local \
+varnames=(__step_root_fp __expiry_threshhold __key_algo KRLNAME FINGERPRINT) \
+varname;for varname in "${varnames[@]}"; do unset "var_$varname";done;parse 9 \
+"$@";local p=${DOCOPT_PREFIX:-''};for varname in "${varnames[@]}"; do unset \
+"$p$varname";done;if declare -p var___key_algo >/dev/null 2>&1; then eval $p'_'\
+'_key_algo=("${var___key_algo[@]}")';else eval $p'__key_algo=(ecdsa ed25519 rs'\
+'a)';fi;if declare -p var_FINGERPRINT >/dev/null 2>&1; then eval $p'FINGERPRIN'\
+'T=("${var_FINGERPRINT[@]}")';else eval $p'FINGERPRINT=()';fi;eval $p'__step_r'\
+'oot_fp=${var___step_root_fp:-'"'"'$STEP_ROOT_FP'"'"'};'$p'__expiry_threshhold'\
+'=${var___expiry_threshhold:-50%};'$p'KRLNAME=${var_KRLNAME:-};';local \
+docopt_i=1;[[ $BASH_VERSION =~ ^4.3 ]] && docopt_i=2;for \
 ((;docopt_i>0;docopt_i--)); do for varname in "${varnames[@]}"; do declare -p \
 "$p$varname";done;done;}
 # docopt parser above, complete command for generating this parser is `docopt.sh --library='"$pkgroot/.upkg/docopt-lib.sh/docopt-lib.sh"' pkidb-sshd`

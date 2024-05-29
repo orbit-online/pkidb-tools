@@ -13,19 +13,19 @@ Usage:
 "
 # docopt parser below, refresh this parser with `docopt.sh pkidb-client-krl`
 # shellcheck disable=2016,2086,2317,1090,1091,2034,2154
-docopt() { source "$pkgroot/.upkg/docopt-lib.sh/docopt-lib.sh" '2.0.0' || {
-ret=$?;printf -- "exit %d\n" "$ret";exit "$ret";};set -e
-trimmed_doc=${DOC:0:129};usage=${DOC:71:58};digest=67a0d;options=(' --dest 1')
-node_0(){ value __dest 0;};node_1(){ value KRLNAME a;};node_2(){ value CAFILE \
-a true;};node_3(){ repeatable 2;};node_4(){ sequence 0 1 3;};cat <<<' \
-docopt_exit() { [[ -n $1 ]] && printf "%s\n" "$1" >&2;printf "%s\n" \
-"${DOC:71:58}" >&2;exit 1;}';local varnames=(__dest KRLNAME CAFILE) varname
-for varname in "${varnames[@]}"; do unset "var_$varname";done;parse 4 "$@"
-local p=${DOCOPT_PREFIX:-''};for varname in "${varnames[@]}"; do unset \
-"$p$varname";done;if declare -p var_CAFILE >/dev/null 2>&1; then eval $p'CAFIL'\
-'E=("${var_CAFILE[@]}")';else eval $p'CAFILE=()';fi;eval $p'__dest=${var___des'\
-'t:-};'$p'KRLNAME=${var_KRLNAME:-};';local docopt_i=1;[[ $BASH_VERSION =~ ^4.3 \
-]] && docopt_i=2;for ((;docopt_i>0;docopt_i--)); do for varname in \
+docopt() { local v='2.0.1'; source \
+"$pkgroot/.upkg/docopt-lib.sh/docopt-lib.sh" "$v" || { ret=$?;printf -- "exit \
+%d\n" "$ret";exit "$ret";};set -e;trimmed_doc=${DOC:0:129};usage=${DOC:71:58}
+digest=67a0d;options=(' --dest 1');node_0(){ value __dest 0;};node_1(){ value \
+KRLNAME a;};node_2(){ value CAFILE a true;};node_3(){ repeatable 2;};node_4(){
+sequence 0 1 3;};cat <<<' docopt_exit() { [[ -n $1 ]] && printf "%s\n" "$1" >&2
+printf "%s\n" "${DOC:71:58}" >&2;exit 1;}';local varnames=(__dest KRLNAME \
+CAFILE) varname;for varname in "${varnames[@]}"; do unset "var_$varname";done
+parse 4 "$@";local p=${DOCOPT_PREFIX:-''};for varname in "${varnames[@]}"; do
+unset "$p$varname";done;if declare -p var_CAFILE >/dev/null 2>&1; then eval \
+$p'CAFILE=("${var_CAFILE[@]}")';else eval $p'CAFILE=()';fi;eval $p'__dest=${va'\
+'r___dest:-};'$p'KRLNAME=${var_KRLNAME:-};';local docopt_i=1;[[ $BASH_VERSION \
+=~ ^4.3 ]] && docopt_i=2;for ((;docopt_i>0;docopt_i--)); do for varname in \
 "${varnames[@]}"; do declare -p "$p$varname";done;done;}
 # docopt parser above, complete command for generating this parser is `docopt.sh --library='"$pkgroot/.upkg/docopt-lib.sh/docopt-lib.sh"' pkidb-client-krl`
   eval "$(docopt "$@")"
