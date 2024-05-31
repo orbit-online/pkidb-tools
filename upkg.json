@@ -18,8 +18,8 @@
       "sha256": "539053da8b3063921b8889dbe752279e3a215d8fa3e2550d6521e094981f26a2"
     },
     {
-      "tar": "https://github.com/orbit-online/smallstep-wrapper/releases/download/v3.0.4/smallstep-wrapper.tar.gz",
-      "sha256": "cfe7381536227c06db3c8ddc8be9efd81166df2d5f2deec2dc239b37e743ee67"
+      "tar": "https://github.com/orbit-online/smallstep-wrapper/releases/download/v3.0.5/smallstep-wrapper.tar.gz",
+      "sha256": "a90a53885f5fa1b6ff1b91fc44956642060882330a168ae53723a2e5c782aac0"
     }
   ]
 }
