@@ -4,7 +4,6 @@
 pkidb_sshd() {
   set -eo pipefail; shopt -s inherit_errexit
   local pkgroot; pkgroot=$(realpath "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/..")
-  PATH=$("$pkgroot/.upkg/.bin/path_prepend" "$pkgroot/.upkg/.bin")
   source "$pkgroot/common.sh"
 
   DOC="pkidb-sshd - Manage client CAs for openssh-server and renew its hostkey

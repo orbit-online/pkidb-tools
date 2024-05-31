@@ -11,9 +11,9 @@ RUN wget -q "https://dl.k8s.io/release/v1.27.4/bin/linux/amd64/kubectl" && \
 WORKDIR /pkidb-tools
 COPY common.sh k8s-secrets/upkg.json /pkidb-tools/
 COPY --chmod=0755 bin/pkidb-k8s-secrets bin/pkidb-ca /pkidb-tools/
-RUN bash -ec 'u=https://github.com/orbit-online/upkg/releases/download/v0.24.4/upkg-install.tar.gz;\
+RUN bash -ec 'u=https://github.com/orbit-online/upkg/releases/download/v0.26.3/upkg-install.tar.gz;\
 t=$(mktemp); trap "rm \"$t\"" EXIT;wget -qO"$t" "$u" || curl -fsLo"$t" "$u";\
-shasum -a 256 -c <(echo "4398bebb91fbf9103b44ffb415e66bc3c7c99522cae27535b2050054869bfbb7  $t");\
+shasum -a 256 -c <(echo "ae99b32cd7cd97a8d102999c8c87bc40844bf9994925dd432b8c0347bb23dc46  $t");\
 tar xzC /usr/local -f "$t"'
 
 ENTRYPOINT ["/pkidb-tools/pkidb-k8s-secrets"]

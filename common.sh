@@ -8,7 +8,7 @@ source "$pkgroot/.upkg/collections.sh/collections.sh"
 [[ -n "$PKIDBURL" ]] || fatal "\$PKIDBURL is not set, unable to continue."
 
 check_all_deps() {
-  checkdeps openssl curl
+  "$pkgroot/.upkg/.bin/checkdeps" openssl curl
 }
 
 get_ca_url() {

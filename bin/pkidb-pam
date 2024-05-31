@@ -4,7 +4,6 @@
 pkidb_pam() {
   set -eo pipefail; shopt -s inherit_errexit
   local pkgroot; pkgroot=$(realpath "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/..")
-  PATH=$("$pkgroot/.upkg/.bin/path_prepend" "$pkgroot/.upkg/.bin")
   source "$pkgroot/common.sh"
 
   DOC="pkidb-pam - Exclusively manage PAM CAs and cache CRLs

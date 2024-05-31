@@ -4,7 +4,6 @@
 pkidb_os() {
   set -eo pipefail; shopt -s inherit_errexit
   local pkgroot; pkgroot=$(realpath "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/..")
-  PATH=$("$pkgroot/.upkg/.bin/path_prepend" "$pkgroot/.upkg/.bin")
   source "$pkgroot/common.sh"
 
   DOC="pkidb-os - Exclusively manage OS local CAs (/usr/local/share-ca-certificates)
@@ -22,7 +21,7 @@ printf "%s\n" "${DOC:78:32}" >&2;exit 1;}';local varnames=(FINGERPRINT) varname
 for varname in "${varnames[@]}"; do unset "var_$varname";done;parse 1 "$@"
 local p=${DOCOPT_PREFIX:-''};for varname in "${varnames[@]}"; do unset \
 "$p$varname";done;if declare -p var_FINGERPRINT >/dev/null 2>&1; then eval \
-$p'FINGERPRINT=("${var_FINGERPRINT[@]}")';else eval $p'FINGERPRINT=()';fi;eval 
+$p'FINGERPRINT=("${var_FINGERPRINT[@]}")';else eval $p'FINGERPRINT=()';fi;eval
 local docopt_i=1;[[ $BASH_VERSION =~ ^4.3 ]] && docopt_i=2;for \
 ((;docopt_i>0;docopt_i--)); do for varname in "${varnames[@]}"; do declare -p \
 "$p$varname";done;done;}
